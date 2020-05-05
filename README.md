@@ -10,3 +10,4 @@
 
 ## Graficos_mortesCOVID.r
     vignette que gera gráficos com informaçoes sobre o Covid-19 no brasil.
+## [Dados dos Índices de Isolamento social](indices-isolamento)
