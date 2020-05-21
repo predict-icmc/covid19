@@ -35,12 +35,6 @@ dados <-dados %>%
 dados <-select(dados, -c('uf.x','uf.y','latitude.x','longitude.x','latitude.y','longitude.y'))
 
 
-View(tes)
-tes = teste[order(teste$date),]
-
-#View(dados)
-
-
 
 # Criando variável semanas
 dados$semanas<- floor(dados$tempo/7)
@@ -51,7 +45,6 @@ dados$final_semana <- dados$tempo%%7
 
 # Pegando somente valores no final de cada semana 
 teste = subset(dados, dados$final_semana==0)
-View(teste)
 
 # filtrando os dados, selecionando apenas os estados
 
@@ -63,8 +56,7 @@ Estados <- Estados %>%
   group_by(state) %>% 
   arrange(semanas)%>%
   mutate(obitos_dia = deaths - lag(deaths, defaut = first(deaths)))
-tes = subset(Estados,Estados$state=='SP'& Estados$place_type == 'state')
-View(tes)
+
 #---------------------------------------------------------------------------------
 #separando em regiões
 # Conferir se fiz as substituições certas para o gráfico em semanas. 
@@ -83,6 +75,23 @@ ggplot(Sudeste, aes(x = semanas, y =death_rate , group = state)) +
        x = 'Semanas', y = 'Número de óbitos', fill = 'estados')  +
   theme_bw()
 
+# Sudeste Log scale
+Sudeste <- filter(Estados, state == 'SP'|state == 'MG'|state == 'RJ'| state == 'ES')
+for(i in Sudeste$state){
+  Sudeste$tempo_2[(Sudeste$state==i)&(Sudeste$deaths>0)] = 
+    Sudeste$semanas[(Sudeste$state==i)&(Sudeste$deaths>0)] -
+    min(Sudeste$semanas[(Sudeste$state==i)&(Sudeste$deaths>0)])
+}
+  
+sud = ggplot(Sudeste, aes(x = tempo_2, y =deaths, group = state)) + 
+    geom_line(aes(col = state), size = 1) +
+    labs(title = 'Total de Mortes por COVID em Log Scale', subtitle = "Sudeste",
+         x = 'Tempo', y = 'Óbitos', fill = 'estados')  +
+    theme_bw()
+sud + scale_x_continuous(trans='log2') +
+  scale_y_continuous(trans='log2')
+
+##############
 
 Norte<-filter(Estados,state=="AC"|state=="AP"| state=="AM" | state=="PA"| state=="RO"| state=="RR"| state=="TO")
 
@@ -91,6 +100,23 @@ ggplot(Norte, aes(x = semanas, y = deaths, group = state)) +
   labs(title = 'Total de Mortes por COVID em semanas', subtitle = "Norte", 
        x = 'Semanas', y = 'Número de óbitos') +
   theme_bw()
+
+# Norte Log scale
+Norte<-filter(Estados,state=="AC"|state=="AP"| state=="AM" | state=="PA"| state=="RO"| state=="RR"| state=="TO")
+for(i in Norte$state){
+  Norte$tempo_2[(Norte$state==i)&(Norte$deaths>0)] = 
+    Norte$semanas[(Norte$state==i)&(Norte$deaths>0)] -
+    min(Norte$semanas[(Norte$state==i)&(Norte$deaths>0)])
+}
+
+norte = ggplot(Norte, aes(x = tempo_2, y =deaths, group = state)) + 
+  geom_line(aes(col = state), size = 1) +
+  labs(title = 'Total de Mortes por COVID em Log Scale', subtitle = "Norte",
+       x = 'Tempo', y = 'Óbitos', fill = 'estados')  +
+  theme_bw()
+norte + scale_x_continuous(trans='log2') +
+  scale_y_continuous(trans='log2')
+####################
 
 Sul<-filter(Estados,state=="PR"|state=="RS"| state=="SC")
 
@@ -106,6 +132,23 @@ ggplot(Sul, aes(x = semanas, y = death_rate, group = state)) +
        x = 'Semanas', y = 'Número de óbitos') +
   theme_bw()
 
+# Sul Log scale
+Sul<-filter(Estados,state=="PR"|state=="RS"| state=="SC")
+for(i in Sul$state){
+  Sul$tempo_2[(Sul$state==i)&(Sul$deaths>0)] = 
+    Sul$semanas[(Sul$state==i)&(Sul$deaths>0)] -
+    min(Sul$semanas[(Sul$state==i)&(Sul$deaths>0)])
+}
+
+sul = ggplot(Sul, aes(x = tempo_2, y =deaths, group = state)) + 
+  geom_line(aes(col = state), size = 1) +
+  labs(title = 'Total de Mortes por COVID em Log Scale', subtitle = "Sul",
+       x = 'Tempo', y = 'Óbitos', fill = 'estados')  +
+  theme_bw()
+sul + scale_x_continuous(trans='log2') +
+  scale_y_continuous(trans='log2')
+####################
+
 
 Centroeste<-filter(Estados,state=="DF"|state=="GO"| state=="MT"|state=="MS")
 
@@ -120,6 +163,23 @@ ggplot(Centroeste, aes(x = semanas, y = death_rate, group = state)) +
   labs(title = 'Total de Mortes por COVID em semanas',subtitle = "Centro Oeste", 
        x = 'Semanas', y = 'Número de óbitos', fill = 'estados') +
   theme_bw()
+
+# Centroeste Log scale
+Centroeste<-filter(Estados,state=="DF"|state=="GO"| state=="MT"|state=="MS")
+for(i in Centroeste$state){
+  Centroeste$tempo_2[(Centroeste$state==i)&(Centroeste$deaths>0)] = 
+    Centroeste$semanas[(Centroeste$state==i)&(Centroeste$deaths>0)] -
+    min(Centroeste$semanas[(Centroeste$state==i)&(Centroeste$deaths>0)])
+}
+
+cent = ggplot(Centroeste, aes(x = tempo_2, y =deaths, group = state)) + 
+  geom_line(aes(col = state), size = 1) +
+  labs(title = 'Total de Mortes por COVID em Log Scale', subtitle = "Centroeste",
+       x = 'Tempo', y = 'Óbitos', fill = 'estados')  +
+  theme_bw()
+cent + scale_x_continuous(trans='log2') +
+  scale_y_continuous(trans='log2')
+####################
 
 
 
@@ -137,6 +197,23 @@ ggplot(Nordeste, aes(x = semanas, y = death_rate, group = state)) +
   labs(title = 'Total de Mortes por COVID em semanas', subtitle = "Nordeste", 
        x = 'Semanas', y = 'Número de óbitos') +
   theme_bw()
+
+
+# Nordeste Log scale
+Nordeste<-filter(Estados,state=="AL"|state=="BA"| state=="CE" | state=="MA"| state=="PB"| state=="PI"| state=="PE"|state=="RN"| state=="SE")
+for(i in Nordeste$state){
+  Nordeste$tempo_2[(Nordeste$state==i)&(Nordeste$deaths>0)] = 
+    Nordeste$semanas[(Nordeste$state==i)&(Nordeste$deaths>0)] -
+    min(Nordeste$semanas[(Nordeste$state==i)&(Nordeste$deaths>0)])
+}
+
+nord = ggplot(Nordeste, aes(x = tempo_2, y =deaths, group = state)) + 
+  geom_line(aes(col = state), size = 1) +
+  labs(title = 'Total de Mortes por COVID em Log Scale', subtitle = "Nordeste",
+       x = 'Tempo', y = 'Óbitos', fill = 'estados')  +
+  theme_bw()
+nord + scale_x_continuous(trans='log2') +
+  scale_y_continuous(trans='log2')
 
 #---------------------------------------------------------------------------------
 
