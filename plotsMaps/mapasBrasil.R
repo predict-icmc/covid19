@@ -5,16 +5,11 @@
 library(rgdal)
 library(RColorBrewer)
 library(leaflet)
-setwd("~/Documentos/USP/predict/covid19/plotsMaps/")
-
 mapa <- readOGR("2015/br_unidades_da_federacao/BRUFE250GC_SIR.shp", stringsAsFactors=FALSE, encoding="UTF-8")
-mapa@data
 pg <- read.csv("densidadeDemografica.csv", sep = ",")
 pg <- as.data.frame(pg)
-head(pg)
-brasileiroHab <- merge(mapa,pg, by.x = "CD_GEOCUF", by.y = "COD_UF")
-brasileiroHab@data
 
+brasileiroHab <- merge(mapa,pg, by.x = "CD_GEOCUF", by.y = "COD_UF")
 proj4string(brasileiroHab) <- CRS("+proj=longlat +datum=WGS84 +no_defs")
 Encoding(brasileiroHab$NM_ESTADO) <- "UTF-8"
 brasileiroHab$hab_km_quad[is.na(brasileiroHab$hab_km_quad)] <- 0
