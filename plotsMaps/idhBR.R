@@ -27,11 +27,10 @@ library(abjData)                           # carregando a base PNUD
 ### idhm_l - IDH municipal - longevidade.
 ### idhm_r - IDH municipal - renda.
 
-tabIDH = pnud_min %>%
-  select(ano,muni, uf,starts_with('idhm')) %>%
-  filter(ano=="2010")
 
-dfIDH = as.data.frame(tabIDH)
-View(dfIDH)
-length(dfIDH)
-nrow(dfIDH)
+tabMun = pnud_muni %>%
+  select(ano,municipio, uf, codmun7, starts_with('idhm')) %>%
+  filter(ano=="2010")
+dfMun = as.data.frame(tabMun)
+view(dfMun)
+
