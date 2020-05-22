@@ -5,31 +5,32 @@
 library(rgdal)
 library(RColorBrewer)
 library(leaflet)
+setwd("/home/louzeiro/Documentos/USP/predict/covid19/plotsMaps/")
 mapa <- readOGR("2015/br_unidades_da_federacao/BRUFE250GC_SIR.shp", stringsAsFactors=FALSE, encoding="UTF-8")
-
-pg <- read.csv("densidadeDemografica.csv", sep = ",")
+pg <- read.csv("mortesCovid.csv", sep = ";")
 pg <- as.data.frame(pg)
+head(pg)
 
-brasileiroHab <- merge(mapa,pg, by.x = "CD_GEOCUF", by.y = "COD_UF")
+brasileiroHab <- merge(mapa,pg, by.x = "CD_GEOCUF", by.y = "cod_cid_ibge")
 proj4string(brasileiroHab) <- CRS("+proj=longlat +datum=WGS84 +no_defs")
 Encoding(brasileiroHab$NM_ESTADO) <- "UTF-8"
-brasileiroHab$hab_km_quad[is.na(brasileiroHab$hab_km_quad)] <- 0
+brasileiroHab$obitos[is.na(brasileiroHab$obitos)] <- 0
 
-pal <- colorBin("Greens",domain = NULL,n=5) 
+pal <- colorBin("Green",domain = NULL,n=5) 
 
 state_popup <- paste0("<strong>Estado: </strong>", 
                       brasileiroHab$NM_ESTADO, 
-                      "<br><strong>Habitantes por Km Quadrado: </strong>", 
-                      brasileiroHab$hab_km_quad)
+                      "<br><strong>Total Óbitos: </strong>", 
+                      brasileiroHab$obitos)
 leaflet(data = brasileiroHab) %>%
   addProviderTiles("CartoDB.Positron") %>%
-  addPolygons(fillColor = ~pal(brasileiroHab$hab_km_quad), 
+  addPolygons(fillColor = ~pal(brasileiroHab$obitos), 
               fillOpacity = 0.8, 
               color = "#BDBDC3", 
               weight = 1, 
               popup = state_popup) %>%
   addLegend("bottomright", pal = pal, values = ~brasileiroHab$hab_km_quad,
-            title = "Densidade Demográfica",
+            title = "Total Obitos",
             opacity = 1)
 
 #################### segundo tutorial
@@ -40,11 +41,12 @@ library(sp)
 n.cat = 8
 
 #Cores utilizadas para cada categoria
-cores = c("#03E06EFF", "#38FA2AFF", "#9FFF15FF", "#DEFE0BFF", "#F3FB06FF", "#FFCD00FF", "#FF8500FF", "#FF3300FF")
-intervalos = quantile(brasileiroHab$hab_km_quad, probs = seq(0,1,0.125)) + c(-0.001,rep(0,7),0.001)
-spplot(brasileiroHab,c("hab_km_quad"),
+#cores = c("#03E06EFF", "#38FA2AFF", "#9FFF15FF", "#DEFE0BFF", "#F3FB06FF", "#FFCD00FF", "#FF8500FF", "#FF3300FF")
+cores = c("#8B0000","#B22222","#A52A2A","#FA8072","#E9967A","#FFA07A","#FF7F50","#FF6347")
+intervalos = quantile(brasileiroHab$obitos, probs = seq(0,1,0.125)) + c(-0.001,rep(0,7),0.001)
+spplot(brasileiroHab,c("obitos"),
        at=intervalos,
-       ylab = "Densidade demográfica",
-       col.regions =brewer.pal(8, "Greens")) #Outras opções de cores: Greens, BrBG, Accent
+       ylab = "Total Acumulado Óbitos",
+       col.regions =brewer.pal(8, "Reds")) #Outras opções de cores: Greens, BrBG, Accent
 
 

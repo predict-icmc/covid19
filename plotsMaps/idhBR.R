@@ -32,5 +32,5 @@ tabMun = pnud_muni %>%
   select(ano,municipio, uf, codmun7, starts_with('idhm')) %>%
   filter(ano=="2010")
 dfMun = as.data.frame(tabMun)
-view(dfMun)
+view(dfMun[order(dfMun$municipio),])
 
