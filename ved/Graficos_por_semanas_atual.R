@@ -34,8 +34,6 @@ dados <-dados %>%
 
 dados <-select(dados, -c('uf.x','uf.y','latitude.x','longitude.x','latitude.y','longitude.y'))
 
-
-
 # Criando variável semanas
 dados$semanas<- floor(dados$tempo/7)
 #View(dados)
@@ -50,6 +48,7 @@ teste = subset(dados, dados$final_semana==0)
 
 Estados <- filter(teste, teste$place_type == 'state')
 View(Estados)
+
 # adicionando a coluna de mortes diária, dado que as mortes estavam acumuladas
 
 Estados <- Estados %>% 
@@ -57,11 +56,57 @@ Estados <- Estados %>%
   arrange(semanas)%>%
   mutate(obitos_dia = deaths - lag(deaths, defaut = first(deaths)))
 
+
+# Comparando estado por estado
+
+Estados <- filter(teste, place_type == 'state')
+
+Estados <- Estados %>% 
+  group_by(state) %>% 
+  arrange(tempo) %>%
+  mutate(obitos_dia = deaths - lag(deaths, defaut = first(deaths)))
+
+ggplot(Estados, aes(x = semanas, y = deaths)) + 
+  geom_line (size = 1, color = "blue") +
+  labs(title = 'Total de Mortes por COVID em semanas', x = 'Semanas', 
+       y = 'Número de óbitos', fill = 'estados') +
+  theme_bw()+
+  facet_wrap(~state, ncol = 9)
+
+ggplot(Estados, aes(x = semanas, y = deaths, group = state)) + 
+  geom_line(aes(col = state), size = 1) +
+  labs(title = 'Mortes semanais confirmadas por COVID-19', 
+       x = 'Semanas', y = 'Número de óbitos') +
+  theme_bw()
+
+
+ggplot(Estados, aes(x = semanas, y = Estados$confirmed_per_100k_inhabitants, group = state)) + 
+  geom_line(aes(col = state), size = 1) +
+  labs(title = 'Mortes semanais de COVID-19', 
+       x = 'Semanas', y = 'Número de óbitos/100 mil habitantes') +
+  theme_bw()
+
+ggplot(Estados, aes(x = semanas, y = log(Estados$confirmed_per_100k_inhabitants), group = state)) + 
+  geom_line(aes(col = state), size = 1) +
+  labs(title = 'Mortes semanais de COVID-19 (escala logarítmica)', 
+       x = 'Semanas', y = 'Número de óbitos/100 mil habitantes') +
+  theme_bw()
+
+ggplot(Estados, aes(x = semanas, y = death_rate, group = state)) + 
+  geom_line(aes(col = state), size = 1) +
+  labs(title = 'Mortes semanais/casos confirmados de COVID-19', 
+       x = 'Semanas', y = 'Número de óbitos') +
+  theme_bw()
+
+
+
+
+
+
 #---------------------------------------------------------------------------------
 #separando em regiões
 # Conferir se fiz as substituições certas para o gráfico em semanas. 
 Sudeste <- filter(Estados, state == 'SP'|state == 'MG'|state == 'RJ'| state == 'ES')
-
 
 ggplot(Sudeste, aes(x = semanas, y =deaths, group = state)) + 
   geom_line(aes(col = state), size = 1) +
@@ -71,7 +116,7 @@ ggplot(Sudeste, aes(x = semanas, y =deaths, group = state)) +
 
 ggplot(Sudeste, aes(x = semanas, y =death_rate , group = state)) + 
   geom_line(aes(col = state), size = 1) +
-  labs(title = 'Total de Mortes por COVID em semanas', subtitle = "Sudeste",
+  labs(title = 'Mortes semanais/casos confirmados de COVID-19', subtitle = "Sudeste",
        x = 'Semanas', y = 'Número de óbitos', fill = 'estados')  +
   theme_bw()
 
@@ -128,7 +173,7 @@ ggplot(Sul, aes(x = semanas, y = deaths, group = state)) +
 
 ggplot(Sul, aes(x = semanas, y = death_rate, group = state)) + 
   geom_line(aes(col = state), size = 1, alpha = 0.8) +
-  labs(title = 'Total de Mortes por COVID em semanas', subtitle = "Sul",
+  labs(title = 'Mortes semanais/casos confirmados de COVID-19', subtitle = "Sul",
        x = 'Semanas', y = 'Número de óbitos') +
   theme_bw()
 
@@ -160,7 +205,7 @@ ggplot(Centroeste, aes(x = semanas, y = deaths, group = state)) +
 
 ggplot(Centroeste, aes(x = semanas, y = death_rate, group = state)) + 
   geom_line(aes(col = state), size = 1) +
-  labs(title = 'Total de Mortes por COVID em semanas',subtitle = "Centro Oeste", 
+  labs(title = 'Mortes semanais/casos confirmados de COVID-19',subtitle = "Centro Oeste", 
        x = 'Semanas', y = 'Número de óbitos', fill = 'estados') +
   theme_bw()
 
@@ -194,7 +239,7 @@ ggplot(Nordeste, aes(x = semanas, y = deaths, group = state)) +
 
 ggplot(Nordeste, aes(x = semanas, y = death_rate, group = state)) + 
   geom_line(aes(col = state), size = 1) +
-  labs(title = 'Total de Mortes por COVID em semanas', subtitle = "Nordeste", 
+  labs(title = 'Mortes semanais/casos confirmados de COVID-19', subtitle = "Nordeste", 
        x = 'Semanas', y = 'Número de óbitos') +
   theme_bw()
 
@@ -280,21 +325,6 @@ par(opar)
 
 #---------------------------------------------------------------------------------
 
-# Comparando estado por estado
-
-Estados <- filter(teste, place_type == 'state')
-
-Estados <- Estados %>% 
-  group_by(state) %>% 
-  arrange(tempo) %>%
-  mutate(obitos_dia = deaths - lag(deaths, defaut = first(deaths)))
-
-ggplot(Estados, aes(x = semanas, y = deaths)) + 
-  geom_line (size = 1, color = "blue") +
-  labs(title = 'Total de Mortes por COVID em semanas', x = 'Semanas', 
-       y = 'Número de óbitos', fill = 'estados') +
-  theme_bw()+
-  facet_wrap(~state, ncol = 9)
 
 #---------------------------------------------------------------------------------
 
@@ -406,24 +436,6 @@ mapa %>%
 
 
 
-ggplot(Estados, aes(x = semanas, y = deaths, group = state)) + 
-  geom_line(aes(col = state), size = 1) +
-  labs(title = 'Mortes semanais confirmadas por COVID-19', 
-       x = 'Semanas', y = 'Número de óbitos') +
-  theme_bw()
-
-
-ggplot(Estados, aes(x = semanas, y = death_rate, group = state)) + 
-  geom_line(aes(col = state), size = 1) +
-  labs(title = 'Mortes semanais confirmadas por COVID-19', 
-       x = 'Semanas', y = 'Número de óbitos') +
-  theme_bw()
-
-ggplot(Estados, aes(x = semanas, y = (death_rate), group = state)) + 
-  geom_line(aes(col = state), size = 1) +
-  labs(title = 'Mortes semanais/casos confirmados de COVID-19', 
-       x = 'Semanas', y = 'Número de óbitos') +
-  theme_bw()
 
 #Estados[Estados$semanas==12,]
 
