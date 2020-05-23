@@ -9,7 +9,7 @@ library(tidyr)
 library(tibble)
 
 setwd("/home/louzeiro/Documentos/USP/predict/covid19/plotsMaps/")
-mapa <- readOGR("Mapas/BRMUE250GC_SIR.shp", stringsAsFactors=FALSE, encoding="UTF-8")
+mapa <- readOGR("Mapas/municipios2016/BRMUE250GC_SIR.shp", stringsAsFactors=FALSE, encoding="UTF-8")
 #View(mapa@data$CD_GEOCMU)
 
 ###### base dados PNUD
