@@ -20,6 +20,7 @@ def formata_data(str_data):
 browser = webdriver.Firefox() # Abre o browser
 url = 'https://public.tableau.com/views/MKTScoredeisolamentosocial/Rankingdosestados?%3Aembed=y&%3AshowVizHome=no&%3Adisplay_count=y&%3Adisplay_static_image=y'
 browser.get(url) # Acessa o site
+
 estados = {'Acre':'AC',
     'Alagoas':'AL',
     'Amapá':'AP',
