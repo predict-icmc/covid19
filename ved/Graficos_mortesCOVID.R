@@ -3,9 +3,9 @@ library(dplyr)
 library(tmap)  
 library(brazilmaps)
 library(ggplot2)
-install.packages("spDataLarge", repos = "https://nowosad.github.io/drat/", type = "source")
+#install.packages("spDataLarge", repos = "https://nowosad.github.io/drat/", type = "source")
 
-dados<-read.csv("https://brasil.io/dataset/covid19/caso?format=csv",header=TRUE)
+#dados<-read.csv("https://brasil.io/dataset/covid19/caso?format=csv",header=TRUE)
 
 dados$tempo<- as.numeric(as.Date(dados$date) - min(as.Date(dados$date)))
 
