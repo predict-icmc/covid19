@@ -31,7 +31,7 @@ estados = {'Acre':'AC',
 
 # Printa dados da media dos índices no arquivo
 def print_dados(dados):
-    arq = open('./dados3.csv','a')
+    arq = open('./isolamento.csv','a')
     arq.write(dados+'\n')
 
 # Site para scraping
