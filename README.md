@@ -1,9 +1,16 @@
-# PREDICT - COVID19
+# COVID19 - Predict
 
- Este respositório foi criado pelo grupo PREDICT como uma forma de centralizar os códigos utilizados pelo grupo. Até o momento temos:
+Este respositório foi criado pelo grupo PREDICT como uma forma de centralizar os códigos utilizados pelo grupo. Até o momento temos:
 
-## [Visualização e Exploração dos Dados](ved)
-Nesta pasta estão os códigos utilizados para ler e construir os gráficos.
+## [Visualização e Exploração dos Dados](graficos)
+Códigos utilizados para ler e construir os gráficos.
 
-## [Dados dos Índices de Isolamento social](indices-isolamento)
-Nesta pasta estão os códigos que foram utilizados para fazer o webscraping dos dados [deste site](https://public.tableau.com/views/MKTScoredeisolamentosocial/VisoGeral?%3Aembed=y&%3AshowVizHome=no&%3Adisplay_count=y&%3Adisplay_static_image=y).
+## [WebScraping](web-scraping)
+Códigos que foram utilizados para fazer o webscraping de dados da web.
+
+## [Modelagem](modelagem)
+Códigos utilizados para fazer a modelagem de ?
+
+## [Dados](dados)
+Diversos dados retirados da web.
+
