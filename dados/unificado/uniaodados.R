@@ -6,12 +6,13 @@ library(tidyverse)
 library(ggplot2)
 dados<-read.csv("https://brasil.io/dataset/covid19/caso?format=csv",header=TRUE)
 
+# Para rodar o código é preciso usar o comando 
+#$ setwd("caminho-do-repositorio/covid19/dados/unificado/")
+# Assim, os relative paths vão funcionar e o código será executado sem erros
 
 #-----------------------Unificando localizações----------------------------------------------------------------------------------------------
-
-
-latitude_longitude_estados <- read.csv(file = "./latitude-longitude-estados.csv", header=TRUE, sep = ";", encoding = "UTF-8")
-latitude_longitude_cidades <- read.csv("C:/Users/Yuri Reis Valete/Desktop/Projetos/PREDICT/dadosdemograficos/latitude-longitude-cidades.csv", header=TRUE, sep = ";", encoding = "UTF-8")
+latitude_longitude_estados <- read.csv(file = "../latitude-longitude/latitude-longitude-estados.csv", header=TRUE, sep = ";", encoding = "UTF-8")
+latitude_longitude_cidades <- read.csv("../latitude-longitude/latitude-longitude-cidades.csv", header=TRUE, sep = ";", encoding = "UTF-8")
 
 #Inserindo "tipo"  para identificação dos mesmos no banco de dados unificado
 
@@ -33,8 +34,8 @@ localizacao_br <- localizacao_br[,-1]
 #--------------Unificando as estimativas popculacionais-------------------------------------------------------------------------------------------
 
 #Unindo todas as planilhas em uma unica tabela
-popc <- excel_sheets("./dadosIBGE.xlsx") %>%
-  map_df(~read_xlsx("C:/Users/Yuri Reis Valete/Desktop/Projetos/PREDICT/dadosdemograficos/dadosIBGE.xlsx",.))
+popc <- excel_sheets("../dadosIBGE/dadosIBGE.xlsx") %>%
+  map_df(~read_xlsx("../dadosIBGE/dadosIBGE.xlsx",.))
 
 #filtrando as linhas e colunas de interesse
 
@@ -76,8 +77,8 @@ pop <- rename(pop, uf = ESTADO, municipio = MUNICIPIO)
 #-------------Selecionando vetor de IDH e outros fatores--------------------------------------
 # banco de dados retirado do Kaggle para cidades, dados 2010 (desatualizado)
 
-explicacao <- read.csv(file = "./desc.csv", header=TRUE, sep = ",", encoding = "UTF-8")
-atlasc <- read.csv(file = "./atlas.csv", header=TRUE, sep = ",", encoding = "UTF-8")
+explicacao <- read.csv(file = "../kaggle/desc.csv", header=TRUE, sep = ",", encoding = "UTF-8")
+atlasc <- read.csv(file = "../kaggle/atlas.csv", header=TRUE, sep = ",", encoding = "UTF-8")
 
 # filtrando apenas para o ano mais recente
 
@@ -146,7 +147,7 @@ atlas_br$municipio <- toupper(atlas_br$municipio)
 
 # recebendo banco de dados com as extensoes dos municipios
 
-extmun <- read_excel("C:/Users/Yuri Reis Valete/Desktop/Projetos/PREDICT/dadosdemograficos/extmun.xls")
+extmun <- read_excel("../dadosIBGE/extmun.xls")
 
 extmun <- extmun %>%
   cbind(tipo = "cidade")
@@ -170,7 +171,7 @@ densidadec <- densidadec[-5573,]
 densidadec$densidade <- (densidadec$ESTIMATIVA2019)/(densidadec$AR_MUN_2019)
 
 # Fazendo o mesmo, agora para estados
-exte <- read_excel("./extmun.xls", sheet = 6)
+exte <- read_excel("../dadosIBGE/extmun.xls", sheet = 6)
 exte <- exte %>% rename(ESTADO = NM_UF_SIGLA, uf = CD_GCUF)
 exte <- exte %>%
   cbind(tipo = "estado")
