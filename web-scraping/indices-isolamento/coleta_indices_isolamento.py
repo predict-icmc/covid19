@@ -6,7 +6,7 @@ import time
 
 # Printa dados do estado no arquivo
 def print_dados(dados):
-    arq = open('./dados3.csv','a')
+    arq = open('../../dados/isolamento/','a')
     arq.write(dados+'\n')
 
 def formata_data(str_data):
