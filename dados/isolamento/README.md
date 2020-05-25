@@ -1,4 +1,4 @@
-# Códigos para Scraping de dados 
+# Dados do Isolamento Social
 
 ## Isolamento social por estado 
 [Índices de Isolamento Social - Tableau](https://public.tableau.com/views/MKTScoredeisolamentosocial/Rankingdosestados?%3Aembed=y&%3AshowVizHome=no&%3Adisplay_count=y&%3Adisplay_static_image=y)
