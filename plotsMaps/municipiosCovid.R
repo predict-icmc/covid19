@@ -33,8 +33,8 @@ amostra10 %>% ggplot(aes(x = confirmed,
 
 
 library(rgdal) 
-#---- Observação: acessar o drive e baixar a pasta Mapas, o arquivo BRMUE250GC_SIR.shp 
-#----             passava de 100MB e o github não permitiu upá-lo
+#---- Observação: acessar o drive compartilhado, acessar a pasta Códigos e baixar a pasta Mapas, 
+#----             o arquivo BRMUE250GC_SIR.shp passava de 100MB e o github não permitiu upá-lo
 mapa <- readOGR("Mapas/municipios2016/BRMUE250GC_SIR.shp", stringsAsFactors=FALSE, encoding="UTF-8")
 municipiosBR <- merge(mapa,munCovid, by.x = "CD_GEOCMU", by.y = "city_ibge_code")
 proj4string(municipiosBR) <- CRS("+proj=longlat +datum=WGS84 +no_defs")
