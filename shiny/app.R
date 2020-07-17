@@ -12,29 +12,24 @@ estados <- dados$state %>% unique
 # Define UI for app that draws a histogram ----
 ui <- fluidPage(
   
-  
-  navbarPage(collapsible = TRUE,
-             tags$img(src = "logo-predict-small.jpg"), id="nav",
+  # painel superior
+  navbarPage(collapsible = F,
+             tags$img(src = "logo-predict-small1.jpg"),
   tabPanel("Previsão por cidade",
   titlePanel(h2("Casos e mortes por Covid-19 no Brasil por município")), 
                   
                 
-  # App title ----
-  
-  
-  # Sidebar layout with input and output definitions ----
+# painel por cidades
   sidebarLayout(
     
     # Sidebar panel for inputs ----
     sidebarPanel(
-      # Input: estados ----
+      # Input: estado e cidade ----
       selectInput(inputId = "state",
                   label = "Escolha um Estado:",
                   choices = estados),
       uiOutput(outputId = "choosecity"),
       ),
-    
-    
     
     # Main panel for displaying outputs ----
     mainPanel(
@@ -42,16 +37,13 @@ ui <- fluidPage(
                   tabPanel("Previsão de Casos", plotOutput(outputId = "distPlot")),
                   tabPanel("Previsão de Mortes", plotOutput(outputId = "distPlot1")))
                   
-      #plotOutput(outputId = "distPlot"),
-      # Output: Graphs ----
-      #plotOutput(outputId = "distPlot1")
-      
     )
    )
   ),
   
+# painel por estado
   tabPanel("Previsão por estado",
-           titlePanel(h2("Casos e mortes de Covid-19 por estado")),
+           titlePanel(h2("Casos e mortes por Covid-19 no Brasil por estado")),
            sidebarLayout(
              
              # Sidebar panel for inputs ----
@@ -60,11 +52,8 @@ ui <- fluidPage(
                selectInput(inputId = "state",
                            label = "Escolha um Estado:",
                            choices = estados),
-               #uiOutput(outputId = "choosecity"),
-             ),
-             
-             
-             
+               ),
+
              # Main panel for displaying outputs ----
              mainPanel(
                tabsetPanel(type = "tabs",
@@ -74,10 +63,11 @@ ui <- fluidPage(
            )
            
   ),
-  
+# painel sobre  
   tabPanel("Sobre",
-           titlePanel(h2("Sobre o Predict-Covid19")), 
+           titlePanel(h2("Sobre o Predict-Covid19")),
            
+           paste("Este projeto visa a análise de dados de COVID-19 por meio de técnicas de visualização de dados e modelos preditivos, para o dimensionamento e prevenção dos impactos da epidemia de COVID-19 e outras síndromes respiratórias agudas graves, utilizando estatística e ciência de dados.")
   )
   
  )
@@ -86,7 +76,7 @@ ui <- fluidPage(
 # Define server logic ----
 server <- function(input, output) {
 
-    # escolhe a cidade
+    # escolhe a cidade a partir do input
   output$choosecity <- renderUI({
     cities <- dados %>% filter(state == input$state & place_type == "city") %>% 
       select(city) %>% unique
@@ -110,8 +100,8 @@ server <- function(input, output) {
                            start = c(Asym=3,b2=0.9,b3=0.9),
                            data = subset(dados,state == input$state & city == input$cities))
      
-     summary(fit)
-     summary(fit.Gompertz)
+     #summary(fit)
+     #summary(fit.Gompertz)
      
      XX = (0:(max(SaoPaulo$tempo)+10))
      
@@ -134,7 +124,7 @@ server <- function(input, output) {
      
      previsao<-rbind(predict,predict.G)
      
-     
+     # gera o grafico
      ggplot(SaoPaulo, aes(x = tempo, y = last_available_confirmed)) + 
        geom_point(size = 1, color = "blue") +
        geom_line(aes(x=x, y = y,  color=model),
@@ -163,8 +153,8 @@ server <- function(input, output) {
                            start = c(Asym=3,b2=0.9,b3=0.9),
                            data = subset(dados,state == input$state & city == input$cities))
      
-     summary(fit)
-     summary(fit.Gompertz)
+     #summary(fit)
+     #summary(fit.Gompertz)
      
      XX = (0:(max(SaoPaulo$tempo)+10))
      
@@ -197,23 +187,11 @@ server <- function(input, output) {
             y = 'Número de óbitos', fill = '') +
        theme_bw()
      
-     
-     
-    
-    # x %>% ggplot +
-     #  geom_line(mapping = aes(as.numeric(date), last_available_confirmed, color = "blue")) +
-      # geom_line(mapping = aes(as.numeric(date), last_available_deaths, color = "red")) +
-      # ggtitle(paste("Total de casos e óbitos em",input$cities,"-",input$state)) +
-      # xlab("Dias desde 2020-02-25") +
-      # ylab("Total de Casos e Óbitos Confirmados")
-      # theme(legend.title=element_blank())
-      
-     
    })
-   #confirmados por estado
+   # confirmados por estado
    output$distPlot2 <- renderPlot({
      
-     #ajuste ao modelo
+     # ajuste ao modelo
      SaoPaulo <- dados %>% filter(state == input$state &
                                     place_type == "state")
      
@@ -221,14 +199,14 @@ server <- function(input, output) {
      
      fit <- nlsLM(last_available_confirmed ~ SSlogis(tempo, Asym, xmid, scal),
                   start = c(Asym=1500,xmid=50,scal=10),
-                  data = subset(dados,state == input$state))
+                  data = subset(dados,state == input$state & place_type == "state"))
      
      fit.Gompertz <- nlsLM(last_available_confirmed ~ SSgompertz(tempo, Asym, b2, b3),
                            start = c(Asym=1500,b2=0.9,b3=0.9),
-                           data = subset(dados,state == input$state))
+                           data = subset(dados,state == input$state & place_type == "state"))
      
-     summary(fit)
-     summary(fit.Gompertz)
+     #summary(fit)
+     #summary(fit.Gompertz)
      
      XX = (0:(max(SaoPaulo$tempo)+10))
      
@@ -254,9 +232,9 @@ server <- function(input, output) {
      
      ggplot(SaoPaulo, aes(x = tempo, y = last_available_confirmed)) + 
        geom_point(size = 1, color = "blue") +
-       #geom_line(aes(x=x, y = y,  color=model),
-      #           data = previsao,
-       #          show.legend = TRUE)+
+       geom_line(aes(x=x, y = y,  color=model),
+                 data = previsao,
+                show.legend = TRUE)+
        labs(title = 'Total de casos confirmados de COVID-19 em dias', subtitle=paste("Estado de",input$state), x = 'Dias', 
             y = 'Número de casos confirmados', fill = '') +
        theme_bw()
@@ -271,16 +249,16 @@ server <- function(input, output) {
      
      SaoPaulo <- SaoPaulo[order(SaoPaulo$tempo),]
      
-     fit <- nlsLM(last_available_confirmed ~ SSlogis(tempo, Asym, xmid, scal),
+     fit <- nlsLM(last_available_deaths ~ SSlogis(tempo, Asym, xmid, scal),
                   start = c(Asym=1500,xmid=50,scal=10),
-                  data = subset(dados,state == input$state))
+                  data = subset(dados,state == input$state & place_type == "state"))
      
-     fit.Gompertz <- nlsLM(last_available_confirmed ~ SSgompertz(tempo, Asym, b2, b3),
-                           start = c(Asym=1500,b2=0.9,b3=0.9),
-                           data = subset(dados,state == input$state))
+     fit.Gompertz <- nlsLM(last_available_deaths ~ SSgompertz(tempo, Asym, b2, b3),
+                           start = c(Asym=150,b2=0.9,b3=0.9),
+                           data = subset(dados,state == input$state & place_type == "state"))
      
-     summary(fit)
-     summary(fit.Gompertz)
+     #summary(fit)
+     #summary(fit.Gompertz)
      
      XX = (0:(max(SaoPaulo$tempo)+10))
      
@@ -304,13 +282,13 @@ server <- function(input, output) {
      previsao<-rbind(predict,predict.G)
      
      
-     ggplot(SaoPaulo, aes(x = tempo, y = last_available_confirmed)) + 
+     ggplot(SaoPaulo, aes(x = tempo, y = last_available_deaths)) + 
        geom_point(size = 1, color = "blue") +
-       #geom_line(aes(x=x, y = y,  color=model),
-        #         data = previsao,
-         #        show.legend = TRUE)+
-       labs(title = 'Total de casos confirmados de COVID-19 em dias', subtitle=paste("Estado de",input$state), x = 'Dias', 
-            y = 'Número de casos confirmados', fill = '') +
+       geom_line(aes(x=x, y = y,  color=model),
+                data = previsao,
+               show.legend = TRUE)+
+       labs(title = 'Total acumulado de mortes por COVID-19 em dias', subtitle=paste("Estado de",input$state), x = 'Dias', 
+            y = 'Número de óbitos', fill = '') +
        theme_bw()
    })
 }
