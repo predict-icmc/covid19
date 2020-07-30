@@ -10,10 +10,10 @@ vars <- c(
   "Letalidade" = "last_available_death_rate",
   "Populacão Estimada 2019" = "estimated_population_2019",
   "Novos Casos Confirmados" = "new_confirmed",
-  "Novos Óbitos" = "new_deaths",
-  "Confirmados / 100 mil habitantes" = "last_available_confirmed_per_100k_inhabitants"
+  "Novos Óbitos" = "new_deaths"#,
+  #"Confirmados / 100 mil habitantes" = "last_available_confirmed_per_100k_inhabitants"
 )
-dados<-read.csv(file = "2020-07-22_merge-covid.csv",header=TRUE)
+dados<-read.csv(file = "2020-07-29_merge-covid.csv",header=TRUE)
 dados <- dados %>% drop_na(latitude,longitude)
 estados <- dados$state %>% unique %>% as.character()
 cleantable <- dados %>% select(state,city,estimated_population_2019,last_available_confirmed, last_available_deaths, last_available_death_rate,latitude,longitude)

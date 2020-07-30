@@ -3,11 +3,11 @@ library(tidyverse)
 library(nls.multstart)
 library(minpack.lm)
 
-#dados <- get_corona_br()
-dados<-read.csv(file = "caso_full.csv",header=TRUE)
-dados$tempo<- as.numeric(as.Date(dados$date) - min(as.Date(dados$date)))
+#dt <- get_corona_br()
+dt<-read.csv(file = "2020-07-29_caso_full.csv",header=TRUE)
+dt$tempo<- as.numeric(as.Date(dt$date) - min(as.Date(dt$date)))
 
-estados <- dados$state %>% unique
+estados <- dt$state %>% unique
 
 # Define UI for app that draws a histogram ----
 ui <- fluidPage(
@@ -23,7 +23,11 @@ ui <- fluidPage(
   sidebarLayout(
     
     # Sidebar panel for inputs ----
-    sidebarPanel(
+     sidebarPanel(
+    #   radioButtons("radio", h3("Listar por"),
+    #                choices = list("Cidades" = 1, "Estados" = 0),
+    #                selected = 1),
+      
       # Input: estado e cidade ----
       selectInput(inputId = "state",
                   label = "Escolha um Estado:",
@@ -62,13 +66,13 @@ ui <- fluidPage(
                            )
            )
            
-  ),
+  )#,
 # painel sobre  
-  tabPanel("Sobre",
-           titlePanel(h2("Sobre o Predict-Covid19")),
-           
-           paste("Este projeto visa a análise de dados de COVID-19 por meio de técnicas de visualização de dados e modelos preditivos, para o dimensionamento e prevenção dos impactos da epidemia de COVID-19 e outras síndromes respiratórias agudas graves, utilizando estatística e ciência de dados.")
-  )
+  # tabPanel("Sobre",
+  #          titlePanel(h2("Sobre o Predict-Covid19")),
+  #          
+  #          paste("Este projeto visa a análise de dt de COVID-19 por meio de técnicas de visualização de dt e modelos preditivos, para o dimensionamento e prevenção dos impactos da epidemia de COVID-19 e outras síndromes respiratórias agudas graves, utilizando estatística e ciência de dt.")
+  # )
   
  )
 )
@@ -78,7 +82,7 @@ server <- function(input, output) {
 
     # escolhe a cidade a partir do input
   output$choosecity <- renderUI({
-    cities <- dados %>% filter(state == input$state & place_type == "city") %>% 
+    cities <- dt %>% filter(state == input$state & place_type == "city") %>% 
       select(city) %>% unique
     selectInput("cities", "Escolha a Cidade", cities)
   })
@@ -86,7 +90,7 @@ server <- function(input, output) {
    output$distPlot <- renderPlot({
      
      #ajuste ao modelo
-     SaoPaulo <- dados %>% filter(state == input$state &
+     SaoPaulo <- dt %>% filter(state == input$state &
                                     city == input$cities &
                                     place_type == "city")
      
@@ -94,11 +98,11 @@ server <- function(input, output) {
      
      fit <- nlsLM(last_available_confirmed ~ SSlogis(tempo, Asym, xmid, scal),
                   start = c(Asym=150,xmid=1,scal=1),
-                  data = subset(dados,state == input$state & city == input$cities))
+                  data = subset(dt,state == input$state & city == input$cities))
      
      fit.Gompertz <- nlsLM(last_available_confirmed ~ SSgompertz(tempo, Asym, b2, b3),
                            start = c(Asym=3,b2=0.9,b3=0.9),
-                           data = subset(dados,state == input$state & city == input$cities))
+                           data = subset(dt,state == input$state & city == input$cities))
      
      #summary(fit)
      #summary(fit.Gompertz)
@@ -139,7 +143,7 @@ server <- function(input, output) {
    output$distPlot1 <- renderPlot({
      
      #ajuste ao modelo
-     SaoPaulo <- dados %>% filter(state == input$state &
+     SaoPaulo <- dt %>% filter(state == input$state &
                                     city == input$cities &
                                     place_type == "city")
      
@@ -147,11 +151,11 @@ server <- function(input, output) {
      
      fit <- nlsLM(last_available_deaths ~ SSlogis(tempo, Asym, xmid, scal),
                   start = c(Asym=1500,xmid=50,scal=10),
-                  data = subset(dados,state == input$state & city == input$cities))
+                  data = subset(dt,state == input$state & city == input$cities))
      
      fit.Gompertz <- nlsLM(last_available_deaths ~ SSgompertz(tempo, Asym, b2, b3),
                            start = c(Asym=3,b2=0.9,b3=0.9),
-                           data = subset(dados,state == input$state & city == input$cities))
+                           data = subset(dt,state == input$state & city == input$cities))
      
      #summary(fit)
      #summary(fit.Gompertz)
@@ -192,23 +196,23 @@ server <- function(input, output) {
    output$distPlot2 <- renderPlot({
      
      # ajuste ao modelo
-     SaoPaulo <- dados %>% filter(state == input$state &
+     SaoPaulo <- dt %>% filter(state == input$state &
                                     place_type == "state")
      
      SaoPaulo <- SaoPaulo[order(SaoPaulo$tempo),]
      
      fit <- nlsLM(last_available_confirmed ~ SSlogis(tempo, Asym, xmid, scal),
                   start = c(Asym=1500,xmid=50,scal=10),
-                  data = subset(dados,state == input$state & place_type == "state"))
+                  data = subset(dt,state == input$state & place_type == "state"))
      
      fit.Gompertz <- nlsLM(last_available_confirmed ~ SSgompertz(tempo, Asym, b2, b3),
                            start = c(Asym=1500,b2=0.9,b3=0.9),
-                           data = subset(dados,state == input$state & place_type == "state"))
+                           data = subset(dt,state == input$state & place_type == "state"))
      
      #summary(fit)
      #summary(fit.Gompertz)
      
-     XX = (0:(max(SaoPaulo$tempo)+10))
+     XX = (0:(max(SaoPaulo$tempo)+30))
      
      Asym<-coef(fit)[1]
      xmid<-coef(fit)[2]
@@ -244,23 +248,23 @@ server <- function(input, output) {
    output$distPlot3 <- renderPlot({
      
      #ajuste ao modelo
-     SaoPaulo <- dados %>% filter(state == input$state &
+     SaoPaulo <- dt %>% filter(state == input$state &
                                   place_type == "state")
      
      SaoPaulo <- SaoPaulo[order(SaoPaulo$tempo),]
      
      fit <- nlsLM(last_available_deaths ~ SSlogis(tempo, Asym, xmid, scal),
                   start = c(Asym=1500,xmid=50,scal=10),
-                  data = subset(dados,state == input$state & place_type == "state"))
+                  data = subset(dt,state == input$state & place_type == "state"))
      
      fit.Gompertz <- nlsLM(last_available_deaths ~ SSgompertz(tempo, Asym, b2, b3),
                            start = c(Asym=150,b2=0.9,b3=0.9),
-                           data = subset(dados,state == input$state & place_type == "state"))
+                           data = subset(dt,state == input$state & place_type == "state"))
      
      #summary(fit)
      #summary(fit.Gompertz)
      
-     XX = (0:(max(SaoPaulo$tempo)+10))
+     XX = (0:(max(SaoPaulo$tempo)+30))
      
      Asym<-coef(fit)[1]
      xmid<-coef(fit)[2]
