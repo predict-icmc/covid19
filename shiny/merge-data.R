@@ -1,4 +1,4 @@
-dados<-read.csv(file = "20200720caso_full.csv",header=TRUE)
+dados<-read.csv(file = "2020-07-29_caso_full.csv",header=TRUE)
 dados$tempo<- as.numeric(as.Date(dados$date) - min(as.Date(dados$date)))
 
 estados <- dados$state %>% unique
@@ -22,4 +22,4 @@ dados <-dados %>%
   filter(is_last == "True")
 dados <-select(dados, -c('uf.x','uf.y','latitude.x','longitude.x','latitude.y','longitude.y'))
 
-write.csv(dados,paste(Sys.Date(),"_merge-covid.csv"), row.names = FALSE)
+write.csv(dados,sprintf("%s_merge-covid.csv", Sys.Date()), row.names = FALSE)
