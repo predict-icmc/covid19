@@ -19,8 +19,11 @@ aq <- dados %>% filter(state == "SP" & epidemiological_week_2019 < 25) %>% mutat
 
 aq$date <- as.Date(aq$date)
 aq <- aq %>% filter(date< as.POSIXct("2020-06-30"))
-aw <- melt(aq,id.vars = "date") 
+aw <- reshape2::melt(aq,id.vars = "date") 
 
 aw %>% ggplot(aes(x = date, y = value)) + 
   facet_wrap(~variable) +
   geom_line()
+
+dados %>% filter(state == "SP") %>%  ggplot(aes(x= date, y = new_deaths_covid19)) +
+  geom_point()

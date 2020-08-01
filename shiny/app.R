@@ -4,7 +4,7 @@ library(nls.multstart)
 library(minpack.lm)
 
 #dt <- get_corona_br()
-dt<-read.csv(file = "2020-07-29_caso_full.csv",header=TRUE)
+dt<-read.csv(file = "2020-07-31_caso_full.csv",header=TRUE)
 dt$tempo<- as.numeric(as.Date(dt$date) - min(as.Date(dt$date)))
 
 estados <- dt$state %>% unique
