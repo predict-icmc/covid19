@@ -5,6 +5,7 @@ library(tidyverse)
 library(plotly)
 
 
+
 vars <- c(
     "Total de Casos Confirmados" = "last_available_confirmed",
     "Total de Óbitos" = "last_available_deaths",
@@ -14,14 +15,22 @@ vars <- c(
     "Novos Óbitos" = "new_deaths"#,
     #"Confirmados / 100 mil habitantes" = "last_available_confirmed_per_100k_inhabitants"
 )
-dados<-read.csv(file = "2020-08-12_merge-covid.csv",header=TRUE)
-dados <- dados %>% drop_na(latitude,longitude)
-estados <- dados$state %>% unique %>% as.character()
-cleantable <- dados %>% select(state,city,estimated_population_2019,last_available_confirmed, last_available_deaths, last_available_death_rate,latitude,longitude)
 
-dt<-read.csv(file = "2020-08-11_caso_full.csv",header=TRUE)
-dt$tempo<- as.numeric(as.Date(dt$date) - min(as.Date(dt$date)))
-dt$date <- as.Date(dt$date)
+vars_plot <- c(
+    "Total de Casos Confirmados" = "last_available_confirmed",
+    "Total de Óbitos" = "last_available_deaths",
+    "Letalidade" = "last_available_death_rate",
+    "Novos Casos Confirmados" = "new_confirmed",
+    "Novos Óbitos" = "new_deaths",
+    "Confirmados / 100 mil habitantes" = "last_available_confirmed_per_100k_inhabitants"
+)
+
+dados<-feather::read_feather("2020-08-14_latlong-covid.feather")
+
+estados <- dados$state %>% unique %>% as.character()
+cleantable <- dados %>% select(state,city,estimated_population_2019,last_available_confirmed, last_available_deaths, last_available_death_rate,latitude,longitude,city_ibge_code)
+
+dt<-feather::read_feather("2020-08-14_full-covid.feather")
 
 
 ui <- fluidPage(
@@ -41,7 +50,7 @@ ui <- fluidPage(
                                           draggable = TRUE, top = 60, left = "auto", right = 20, bottom = "auto",
                                           width = 330, height = "auto",
                                           
-                                          h2("Mapa interativo do Covid-19"),
+                                          h2("Mapa Interativo do Covid-19"),
                                           
                                           radioButtons("radio", h3("Listar por"),
                                                        choices = list("Cidades" = 1, "Estados" = 0, "Regiões" = 2),
@@ -78,6 +87,8 @@ ui <- fluidPage(
                                 #              choices = list("Municipal" = 1, "Estadual" = 0, "Regional" = 2),
                                 #              selected = 1),
                                 
+                                #Tipo de plot
+                                selectInput("plotType", "Variável:", vars_plot, selected = "last_available_confirmed"),
                                 # Input: estado e cidade ----
                                 selectInput(inputId = "state",
                                             label = "Escolha um Estado:",
@@ -123,10 +134,12 @@ ui <- fluidPage(
                         titlePanel(h2("Sobre o Predict-Covid19")),
                         
                         paste("Este projeto visa a análise de dados de COVID-19 por meio de técnicas de visualização de dados e modelos preditivos, para o dimensionamento e prevenção dos impactos da epidemia de COVID-19 e outras síndromes respiratórias agudas graves, utilizando estatística e ciência de dados. Nossa proposta envolve a predição do número de casos e óbitos, a demanda de internações hospitalares de acordo com diferentes intervenções não farmacológicas, o que inclui medidas de distanciamento social, isolamento voluntário, isolamento de sintomáticos, uso de equipamentos de proteção individual (EPIs), monitoramento de contatos próximos ou domiciliares, triagem em serviços de saúde, entre outras.")
-               )
                
-    )
-    
+                        
+                        )
+               
+    ),
+    conditionalPanel("false", icon("crosshair"))    
 )
 
 
@@ -201,7 +214,6 @@ server <- function(input, output, session) {
         
         isolate({
             showCityPopup(event$id, event$lat, event$lng)
-            
             #aqui entraria o observador que controla a cidade a ser exibida na previsao
         })
     })
@@ -211,15 +223,20 @@ server <- function(input, output, session) {
     
     #grafico de confirmados por municipio
     output$distPlot <- renderPlotly({
+            
+        req(input$chooseCity)
+                
         
-        
-        SaoPaulo <- dt %>% filter(state == input$state &
+        selectedCity <- dt %>% filter(state == input$state &
                                       city == input$chooseCity &
                                       place_type == "city")
         
+        selectedvar <- selectedCity %>% select(input$plotType) %>% pull
         
-        p <- SaoPaulo %>% plot_ly() %>% add_lines(x = ~date, y = ~last_available_confirmed)
-    })
+        p <- selectedCity %>% plot_ly() %>% add_lines(x = ~date, y = ~selectedvar)
+        
+        
+        })
         
     
     # data explorer (tabela)
@@ -258,7 +275,7 @@ server <- function(input, output, session) {
             map <- leafletProxy("map")
             map %>% clearPopups()
             dist <- 0.5
-            zip <- input$goto$city_ibge_code
+            zip <- input$goto$city
             lat <- input$goto$lat
             lng <- input$goto$lng
             showCityPopup(zip, lat, lng)
@@ -275,9 +292,11 @@ server <- function(input, output, session) {
                 is.null(input$cities) | city %in% input$cities#,
                 #is.null(input$zipcodes) | Zipcode %in% input$zipcodes
             ) %>%
-            mutate("Ir ao mapa" = paste('<a class="go-map" href="" data-lat="', latitude, '" data-long="', longitude, '"><i class="fa fa-crosshairs"></i></a>', sep=""))
+            mutate("Ir ao mapa" = paste('<a class="go-map" href="" data-lat="', latitude, '" data-long="', longitude,'" data-city="', city_ibge_code, '"><i class="fa fa-crosshairs"></i></a>', sep=""))
         action <- DT::dataTableAjax(session, df, outputId = "ziptable")
         
+        
+        colnames(df) <- c("Estado","Cidade","Populacão Estimada 2019","Total de Casos","Total de Mortes","Taxa de Letalidade","Latitude","Longitude","Código IBGE", "Ir ao Mapa")
         DT::datatable(df, options = list(ajax = list(url = action)), escape = FALSE)
     })
     
