@@ -6,9 +6,16 @@ library(feather)
 library(plotly)
 library(minpack.lm)
 
+#pegando novos dados
+#source("merge-data.R")
+
+# utilize a funcao pegaCorona() para baixar os dados atualizados
+#setwd("~/predict-covid19/shiny/site_final/covid-19")
+#pegaCorona()
+
 # arquivo feather a ser lido. Consulte merge-data.R para saber como gerar novos arquivos
-latlong <- "2020-09-09_latlong-covid.feather"
-caso_full <- "2020-09-09_full-covid.feather"
+latlong <- "latlong-covid.feather"
+caso_full <- "full-covid.feather"
 
 # Variaveis a serem exibidas
 vars <- c(
