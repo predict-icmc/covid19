@@ -1,7 +1,13 @@
 library(tidyverse)
 library(feather)
 
+# Criacao de arquivo de dados otimizado para o dashboard
+# baixe o arquivo de https://data.brasil.io/dataset/covid19/caso_full.csv.gz e coloque-o na mesma pasta que este codigo.
+# escolha a pasta
+# copie tambem os arquivos latitude-longitude-cidades.csv e latitude-longitude-estados.csv para a pasta
+#setwd("~/predict-covid19/shiny/site_final/covid-19")
 # otimizando a leitura de todos os casos por municipio
+
 dados<-read.csv(file = "caso_full.csv",header=TRUE)
 dados$tempo<- as.numeric(as.Date(dados$date) - min(as.Date(dados$date)))
 dados$date <- as.Date(dados$date)
