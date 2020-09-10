@@ -5,14 +5,28 @@ library(feather)
 # baixe o arquivo de https://data.brasil.io/dataset/covid19/caso_full.csv.gz e coloque-o na mesma pasta que este codigo.
 # escolha a pasta
 # copie tambem os arquivos latitude-longitude-cidades.csv e latitude-longitude-estados.csv para a pasta
+
+
 #setwd("~/predict-covid19/shiny/site_final/covid-19")
+
+
 # otimizando a leitura de todos os casos por municipio
+
+
+downCorona <- function(file_url) {
+  con <- gzcon(url(file_url))
+  txt <- readLines(con)
+  return(read.csv(textConnection(txt)))
+}
+
+pegaCorona <- function(){
+dados <- downCorona("https://data.brasil.io/dataset/covid19/caso_full.csv.gz")
 
 dados<-read.csv(file = "caso_full.csv",header=TRUE)
 dados$tempo<- as.numeric(as.Date(dados$date) - min(as.Date(dados$date)))
 dados$date <- as.Date(dados$date)
 
-write_feather(dados,sprintf("%s_full-covid.feather", Sys.Date()))
+write_feather(dados,sprintf("full-covid.feather", Sys.Date()))
 
 
 # acrescentando latitude e longitude nos ultimos casos
@@ -38,4 +52,5 @@ dados <-select(dados, -c('uf.x','uf.y','latitude.x','longitude.x','latitude.y','
 
 dados <- dados %>% drop_na(latitude,longitude)
 
-write_feather(dados,sprintf("%s_latlong-covid.feather", Sys.Date()))
+write_feather(dados,sprintf("latlong-covid.feather"))
+}
