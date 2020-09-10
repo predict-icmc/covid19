@@ -2,10 +2,15 @@ library(shiny)
 library(leaflet)
 library(RColorBrewer)
 library(tidyverse)
+library(feather)
 library(plotly)
+library(minpack.lm)
 
+# arquivo feather a ser lido. Consulte merge-data.R para saber como gerar novos arquivos
+latlong <- "2020-09-09_latlong-covid.feather"
+caso_full <- "2020-09-09_full-covid.feather"
 
-
+# Variaveis a serem exibidas
 vars <- c(
     "Total de Casos Confirmados" = "last_available_confirmed",
     "Total de Óbitos" = "last_available_deaths",
@@ -25,12 +30,14 @@ vars_plot <- c(
     "Confirmados / 100 mil habitantes" = "last_available_confirmed_per_100k_inhabitants"
 )
 
-dados<-feather::read_feather("2020-08-14_latlong-covid.feather")
+
+# leitura dos dados.
+dados<-read_feather(latlong)
 
 estados <- dados$state %>% unique %>% as.character()
 cleantable <- dados %>% select(state,city,estimated_population_2019,last_available_confirmed, last_available_deaths, last_available_death_rate,latitude,longitude,city_ibge_code)
 
-dt<-feather::read_feather("2020-08-14_full-covid.feather")
+dt<-read_feather(caso_full)
 
 
 ui <- fluidPage(
@@ -53,7 +60,7 @@ ui <- fluidPage(
                                           h2("Mapa Interativo do Covid-19"),
                                           
                                           radioButtons("radio", h3("Listar por"),
-                                                       choices = list("Cidades" = 1, "Estados" = 0, "Regiões" = 2),
+                                                       choices = list("Cidades" = 1, "Estados" = 0),# "Regiões" = 2),
                                                        selected = 1),
                                           
                                           selectInput("color", "Variável:", vars, selected = "last_available_confirmed"),
@@ -63,6 +70,7 @@ ui <- fluidPage(
                                           # Only prompt for threshold when coloring or sizing by superzip
                                           #                 numericInput("threshold", "SuperZIP threshold (top n percentile)", 5)
                             ),
+                            #plotlyOutput(outputId = "predict_cases")
                             #plotOutput("graph", height = 200, click = "plot_click"),
                             #plotOutput("histCentile", height = 200),
                             #plotOutput("scatterCollegeIncome", height = 250)
@@ -75,29 +83,62 @@ ui <- fluidPage(
                         
                ),
                tabPanel("Gráficos",
-                        titlePanel(h2("Casos e mortes por Covid-19 no Brasil")), 
+                        #   tabPanel("Previsão",
+                        #          titlePanel(h2("Previsão de casos e mortes por Covid-19 no Brasil")), 
+                        #          
+                        #          # painel por cidades
+                        #          sidebarLayout(
+                        #            
+                        #            # Sidebar panel for inputs ----
+                        #            sidebarPanel(
+                        #            selectInput(inputId = "state",
+                        #                        label = "Escolha um Estado:",
+                        #                        choices = estados,  selected = "SP"),
+                        #            uiOutput(outputId = "choosecity",  selected ="São Paulo")),
+                        #            mainPanel(      
+                        #              plotlyOutput(outputId = "predict_cases"),
+                        #              plotlyOutput(outputId = "predict_deaths")
+                        #            ))
+                        # ),
                         
+                        #tabPanel("Exploratórios",
+                        #titlePanel(h2("Casos e mortes por Covid-19 no Brasil")), 
                         
                         # painel por cidades
                         sidebarLayout(
                             
                             # Sidebar panel for inputs ----
-                            sidebarPanel(
-                                # radioButtons("radio1", h3("Tipo de previsão"),
-                                #              choices = list("Municipal" = 1, "Estadual" = 0, "Regional" = 2),
-                                #              selected = 1),
+                            sidebarPanel(position = "left",
+                              
+                                radioButtons("radio1", h3("Tipo de previsão"),
+                                              choices = list("Municipal" = 1, "Estadual" = 0),# "Regional" = 2),
+                                              selected = 1),
                                 
                                 #Tipo de plot
-                                selectInput("plotType", "Variável:", vars_plot, selected = "last_available_confirmed"),
+                                
                                 # Input: estado e cidade ----
-                                selectInput(inputId = "state",
-                                            label = "Escolha um Estado:",
-                                            choices = estados,  selected = "SP"),
-                                uiOutput(outputId = "choosecity",  selected ="São Paulo"),
-                            ),
-                            plotlyOutput(outputId = "distPlot")
-                            ),
-                                               
+                              selectInput(inputId = "state",
+                                        label = "Escolha um Estado:",
+                                        choices = estados,  selected = "SP"),
+                              uiOutput(outputId = "choosecity_map",  selected ="São Paulo"),
+                            
+                              span(tags$i(h6("A notificação dos casos está sujeita a uma variação significativa devido a política de testagem e capacidade das secretarias estaduais de saúde.")), style="color:#045a8d"),
+                              h3(textOutput("reactive_case_count"), align = "right"),
+                              ),
+                            
+                            mainPanel(
+                              plotlyOutput(outputId = "predict_cases"),
+                              
+                              
+                              selectInput("plotType", "Escolha a variável:", vars_plot, selected = "last_available_confirmed"),
+                              plotlyOutput(outputId = "distPlot")
+                              
+                              
+                              
+                            #plotlyOutput(outputId = "predict_deaths")
+                            )
+                        )
+                        #)
                         
                ),
                # Explorador
@@ -112,7 +153,7 @@ ui <- fluidPage(
                                    )
                             )#,
                             # column(3,
-                            #        conditionalPanel("input.states",
+                            #        conditionalPanel("input.states", 
                             #                         selectInput("zipcodes", "Zipcodes", c("All zipcodes"=""), multiple=TRUE)
                             #        )
                             #)
@@ -132,9 +173,9 @@ ui <- fluidPage(
                
                tabPanel("Sobre",
                         titlePanel(h2("Sobre o Predict-Covid19")),
-                        
+                        mainPanel(
                         paste("Este projeto visa a análise de dados de COVID-19 por meio de técnicas de visualização de dados e modelos preditivos, para o dimensionamento e prevenção dos impactos da epidemia de COVID-19 e outras síndromes respiratórias agudas graves, utilizando estatística e ciência de dados. Nossa proposta envolve a predição do número de casos e óbitos, a demanda de internações hospitalares de acordo com diferentes intervenções não farmacológicas, o que inclui medidas de distanciamento social, isolamento voluntário, isolamento de sintomáticos, uso de equipamentos de proteção individual (EPIs), monitoramento de contatos próximos ou domiciliares, triagem em serviços de saúde, entre outras.")
-               
+                        )
                         
                         )
                
@@ -144,13 +185,22 @@ ui <- fluidPage(
 
 
 server <- function(input, output, session) {
-    
+    #observador que lansa as cidades a serem escolhidas
     output$choosecity <- renderUI({
         if(input$radio == 1){
             cities <- dt %>% filter(state == input$state & place_type == "city") %>% 
                 select(city) %>% unique
             selectInput("chooseCity", "Escolha a Cidade", cities)}
     })
+    # copia do observador que lansa as cidades a serem escolidas nos graficos
+    output$choosecity_map <- renderUI({
+      if(input$radio1 == 1){
+        cities <- dt %>% filter(state == input$state & place_type == "city") %>% 
+          select(city) %>% unique
+        selectInput("chooseCity", "Escolha a Cidade", cities)}
+    })
+    
+    
     
     ## Interactive Map ###########################################
     
@@ -218,23 +268,88 @@ server <- function(input, output, session) {
         })
     })
     
-    # gráficos
-    # escolhe a cidade a partir do input
+    # sessao de gráficos
+    
+    output$reactive_case_count <- renderText({
+      req(input$chooseCity)
+      
+      if(input$radio1 == 1)
+        total_casos <- dt %>% filter(state == input$state &
+                                        city == input$chooseCity &
+                                        place_type == "city" & is_last == "True") 
+      else
+        total_casos <- dt %>% filter(state == input$state &
+                                        place_type == "state"& is_last == "True")
+      paste0(prettyNum(total_casos$last_available_confirmed, big.mark=".", decimal.mark = ","), " casos\n",
+              prettyNum(total_casos$last_available_deaths, big.mark=".", decimal.mark = ","), " óbitos\n")
+    })
+    
+    
+    # previsoes no plot_ly. Finalmente!
+    
+    output$predict_cases <- renderPlotly({
+      
+      req(input$chooseCity)
+      if(input$radio1 == 1)
+      selectedCity <- dt %>% filter(state == input$state &
+                                      city == input$chooseCity &
+                                      place_type == "city")
+      else
+        selectedCity <- dt %>% filter(state == input$state &
+                                        place_type == "state")
+      
+      
+      #selectedvar <- selectedCity %>% select(input$plotType) %>% pull
+      
+      # ajuste do modelo
+      
+      fit.Gompertz.cases <- nlsLM(last_available_confirmed ~ SSgompertz(tempo, Asym, b2, b3),
+                                  #start = c(Asym=1,b2=0,b3=0),
+                                  data = selectedCity)
+      XX = (0:(max(selectedCity$tempo)+10))
+      Asym.G<-coef(fit.Gompertz.cases)[1]
+      b2.G<-coef(fit.Gompertz.cases)[2]
+      b3.G<-coef(fit.Gompertz.cases)[3]
+      
+      yp.G<-0
+      
+      yp.G<-Asym.G*exp((-b2.G)*(b3.G)^XX)
+      
+      
+      predict.G<-data.frame(x=XX,y=yp.G)
+      
+      predict.filtra <- predict.G %>% filter(x > max(selectedCity$tempo-1))
+      
+      selectedCity.filtra <- selectedCity %>% filter(tempo > max(selectedCity$tempo)-30)
+      # gera o grafico
+      p<-  ggplot(selectedCity.filtra) + 
+        geom_line(aes(x = tempo, y = last_available_confirmed), size = 1, color = "blue") +
+        geom_point(aes(x=x, y = y, color = "red", alpha = .4),
+                   data = predict.filtra) +
+        labs(title = 'Previsão de casos nos próximos 10 dias', subtitle=paste(input$cities,"-",input$state), x = 'Dias', 
+             y = 'Total de casos confirmados', fill = '') +
+        theme_bw()
+      ggplotly() %>% config(displayModeBar = F) %>% hide_legend()
+      
+    })
     
     #grafico de confirmados por municipio
     output$distPlot <- renderPlotly({
             
         req(input$chooseCity)
                 
-        
+      if(input$radio1 == 1)
         selectedCity <- dt %>% filter(state == input$state &
                                       city == input$chooseCity &
                                       place_type == "city")
-        
+      else
+        selectedCity <- dt %>% filter(state == input$state &
+                                        place_type == "state")
+      
+      
         selectedvar <- selectedCity %>% select(input$plotType) %>% pull
         
-        p <- selectedCity %>% plot_ly() %>% add_lines(x = ~date, y = ~selectedvar)
-        
+        p <- selectedCity %>% plot_ly() %>% add_lines(x = ~date, y = ~selectedvar) %>% config(displayModeBar = F) %>% hide_legend()
         
         })
         
@@ -301,6 +416,7 @@ server <- function(input, output, session) {
     })
     
 }
+#browser()
 shinyApp(ui = ui, server = server)
 
 # enviar site
