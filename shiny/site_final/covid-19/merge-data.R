@@ -1,8 +1,10 @@
 library(tidyverse)
 library(feather)
+library(data.table)
+library(rdrop2)
 
 # Criacao de arquivo de dados otimizado para o dashboard
-# baixe o arquivo de https://data.brasil.io/dataset/covid19/caso_full.csv.gz e coloque-o na mesma pasta que este codigo.
+# baixe o arquivo de https://data.brasil.io/dataset/covid19/caso_full.csv.gz e coloque-o na mesma pasta que este codigo funcione.
 # escolha a pasta
 # copie tambem os arquivos latitude-longitude-cidades.csv e latitude-longitude-estados.csv para a pasta
 
@@ -13,20 +15,36 @@ library(feather)
 # otimizando a leitura de todos os casos por municipio
 
 
+# dropbox token
+#token <- readRDS(file = "token.rds")
+
+# função que lê diretamente o gzip do servidor
 downCorona <- function(file_url) {
   con <- gzcon(url(file_url))
   txt <- readLines(con)
   return(read.csv(textConnection(txt)))
 }
 
-pegaCorona <- function(){
-dados <- downCorona("https://data.brasil.io/dataset/covid19/caso_full.csv.gz")
+# funcao que pega o arquivo de casos do brasil.io, faz um pequeno tratamento e envia para o dropbox os arquivos "latlong-covid.feather" e "full-covid.feather"
+# ATENÇÃO: necessário possuir os arquivos 'latitude-longitude-cidades.csv' e 'latitude-longitude-estados.csv' na working directory
 
-dados<-read.csv(file = "caso_full.csv",header=TRUE)
+
+pegaCorona <- function(baixar = TRUE){
+
+  if(baixar)
+    dados <- downCorona("https://data.brasil.io/dataset/covid19/caso_full.csv.gz")
+  # caso já tenha o arquivo na pasta
+  else
+    dados<-read.csv(file = "caso_full.csv",header=TRUE)
+  
+  
 dados$tempo<- as.numeric(as.Date(dados$date) - min(as.Date(dados$date)))
 dados$date <- as.Date(dados$date)
 
-write_feather(dados,sprintf("full-covid.feather", Sys.Date()))
+# acrescentar a media_movel
+
+write_feather(dados,sprintf("full-covid.feather"))
+#drop_upload("full-covid.feather", dtoken = token)
 
 
 # acrescentando latitude e longitude nos ultimos casos
@@ -53,4 +71,6 @@ dados <-select(dados, -c('uf.x','uf.y','latitude.x','longitude.x','latitude.y','
 dados <- dados %>% drop_na(latitude,longitude)
 
 write_feather(dados,sprintf("latlong-covid.feather"))
+
+#drop_upload("latlong-covid.feather", dtoken = token)
 }
