@@ -3,6 +3,7 @@ library(feather)
 library(data.table)
 library(rdrop2)
 
+
 # Criacao de arquivo de dados otimizado para o dashboard
 # baixe o arquivo de https://data.brasil.io/dataset/covid19/caso_full.csv.gz e coloque-o na mesma pasta que este codigo funcione.
 # escolha a pasta
