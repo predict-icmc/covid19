@@ -2,7 +2,7 @@ library(feather)
 library(tidyverse)
 library(plotly)
 library(minpack.lm)
-library(gridExtra)
+library(data.table)
 
 
 caso_full <- "2020-09-09_full-covid.feather"
@@ -11,6 +11,22 @@ dt<-read_feather(caso_full)
 selectedCity <- dt %>% filter(state == "SP" &
                                 city == "São Paulo" &
                                 place_type == "city")
+# média móvel
+
+a <- frollmean(selectedCity$new_deaths, 7) 
+variacao <- (a[length(a)] - a[length(a)-1])/a[length(a)-1]
+scales::percent(variacao)
+
+p <- selectedCity %>% ggplot(aes(x = date, y= new_deaths)) + geom_bar(stat="identity") + geom_line(aes(y = a))
+ggplotly(p)
+# casos
+
+b <- frollmean(selectedCity$new_confirmed, 7) 
+
+selectedCity %>% ggplot(aes(x = date, y= new_confirmed)) + geom_bar(stat="identity") + geom_line(aes(y = b))
+
+selectedCity %>% plot_ly() %>% add_bars(x = ~date, y = ~new_confirmed) %>% add_lines(x = ~date, y = ~b) %>% config(displayModeBar = F) %>% hide_legend()
+
 # ajuste do modelo
 
 fit.Gompertz.cases <- nlsLM(last_available_confirmed ~ SSgompertz(tempo, Asym, b2, b3),

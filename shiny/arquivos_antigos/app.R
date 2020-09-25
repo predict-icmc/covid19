@@ -17,7 +17,7 @@ ui <- fluidPage(
   navbarPage(collapsible = F,
              tags$img(src = "logo-predict-small1.jpg"),
   tabPanel("Previsão",
-  titlePanel(h2("Casos e morteUntirastled-2s por Covid-19 no Brasil por município")), 
+  titlePanel(h2("Casos e morte por Covid-19 no Brasil por município")), 
                   
                 
 # painel por cidades

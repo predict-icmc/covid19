@@ -4,6 +4,7 @@ library(RColorBrewer)
 library(tidyverse)
 library(feather)
 library(plotly)
+library(data.table)
 library(minpack.lm)
 
 # pegando novos dados
