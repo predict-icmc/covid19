@@ -8,14 +8,15 @@ library(data.table)
 library(minpack.lm)
 
 # pegando novos dados
-
-# utilize a funcao pegaCorona() para baixar os dados atualizados 
+# essa função baixa os dados mais recentes e salva na working dir
+# utilize a pegaCorona() para baixar os dados atualizados do brasil.io
 # ATENÇÃO: necessário possuir os arquivos 'latitude-longitude-cidades.csv' e 'latitude-longitude-estados.csv' na working directory
 
-# setwd("~/predict-covid19/shiny/site_final/covid-19")
-#source("merge-data.R")
+# descomente as tres linhas, execute-as no R, depois comente novamente antes de rodar o shiny
+# em breve: cron jobs?
 
-# essa função baixa os dados mais recentes do brasil.io e salva na pasta
+#setwd("~/predict-covid19/shiny/site_final/covid-19")
+#source("merge-data.R")
 #pegaCorona()
 
 # arquivo feather a ser lido. Consulte merge-data.R para saber como gerar novos arquivos
