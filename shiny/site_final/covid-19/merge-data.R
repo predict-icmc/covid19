@@ -1,7 +1,6 @@
 library(tidyverse)
 library(feather)
 library(data.table)
-library(rdrop2)
 
 
 # Criacao de arquivo de dados otimizado para o dashboard
@@ -32,18 +31,21 @@ downCorona <- function(file_url) {
 
 pegaCorona <- function(baixar = TRUE){
 
-  if(baixar)
+  if(baixar){
+    print("Fazendo o download....")
     dados <- downCorona("https://data.brasil.io/dataset/covid19/caso_full.csv.gz")
-  # caso já tenha o arquivo na pasta
+    cart <- downCorona("https://data.brasil.io/dataset/covid19/obito_cartorio.csv.gz")
+  }
+    # caso já tenha o arquivo na pasta
   else
     dados<-read.csv(file = "caso_full.csv",header=TRUE)
   
-  
+  print("Download concluido. Transformando os dados")
 dados$tempo<- as.numeric(as.Date(dados$date) - min(as.Date(dados$date)))
 dados$date <- as.Date(dados$date)
 
 # acrescentar a media_movel
-
+write_feather(cart,sprintf("ob-cartorio.feather"))
 write_feather(dados,sprintf("full-covid.feather"))
 #drop_upload("full-covid.feather", dtoken = token)
 
@@ -73,5 +75,6 @@ dados <- dados %>% drop_na(latitude,longitude)
 
 write_feather(dados,sprintf("latlong-covid.feather"))
 
+print("Dados baixados e salvos com sucesso.")
 #drop_upload("latlong-covid.feather", dtoken = token)
 }
