@@ -12,7 +12,7 @@ library(minpack.lm)
 # utilize a pegaCorona() para baixar os dados atualizados do brasil.io
 # ATENÇÃO: necessário possuir os arquivos 'latitude-longitude-cidades.csv' e 'latitude-longitude-estados.csv' na working directory
 
-# descomente as tres linhas, execute-as no R, depois comente novamente antes de rodar o shiny
+# descomente as tres linhas abaixo, execute-as no R, depois comente novamente antes de rodar o shiny
 # em breve: cron jobs?
 
 #setwd("~/predict-covid19/shiny/site_final/covid-19")
@@ -47,9 +47,13 @@ vars_plot_mm <- c(
   "Novos Óbitos" = "new_deaths"
 )
 
+vars_plot_pred <- c(
+  "Casos Confirmados" = "last_available_confirmed",
+  "Óbitos" = "last_available_deaths"
+)
 
 # leitura dos dados.
-dados<-read_feather(latlong)
+dados <- read_feather(latlong)
 
 estados <- dados$state %>% unique %>% as.character()
 cleantable <- dados %>% select(state,city,estimated_population_2019,last_available_confirmed, last_available_deaths, last_available_death_rate,latitude,longitude,city_ibge_code)
@@ -129,9 +133,10 @@ ui <- fluidPage(
                               ),
                             
                             mainPanel(
-                              
+                              h2("Previsão para os próximos 10 dias"),
+                              radioButtons("predType", "", vars_plot_pred, selected = "last_available_confirmed"),
                               plotlyOutput(outputId = "predict_cases"),
-                              
+                              h2("Variacão da média móvel"),
                               radioButtons("plotTypeMM", "", vars_plot_mm, selected = "new_confirmed"),
                               plotlyOutput(outputId = "mmPlot"),
                               
@@ -224,6 +229,7 @@ server <- function(input, output, session) {
         sizeBy <- input$color
         if(input$radio == 1)
             zipdata <- dados %>% filter(place_type == "city")
+        
         else
             zipdata <- dados %>% filter(place_type == "state")
         
@@ -344,7 +350,9 @@ server <- function(input, output, session) {
     # previsoes no plot_ly. Finalmente!
     
     output$predict_cases <- renderPlotly({
-      req(input$chooseCity) #tratamento do reactive
+    # tratamento do reactive  
+      req(input$predType)
+      req(input$chooseCity) 
       
     # cidade ou estado 
     if(input$radio1 == 1)
@@ -355,11 +363,14 @@ server <- function(input, output, session) {
         selectedCity <- dt %>% filter(state == input$state &
                                         place_type == "state")
       
-      # ajuste do modelo
       
+      #model_val <- selectedCity %>% select(input$vars_plot_pred) %>% pull
+      selectedCity <- selectedCity %>% select(tempo, var = input$predType)
+      
+      # modelagem somente a partir dos ultimos 75 dias
+      selectedCity <- selectedCity %>% filter(tempo > max(selectedCity$tempo)-75)
       # modelo de Gompertz com auto-inicialização
-      fit.Gompertz.cases <- nlsLM(last_available_confirmed ~ SSgompertz(tempo, Asym, b2, b3),
-                                  #start = c(Asym=1,b2=0,b3=0),
+      fit.Gompertz.cases <- nlsLM(var ~ SSgompertz(tempo, Asym, b2, b3),
                                   data = selectedCity)
       XX = (0:(max(selectedCity$tempo)+10))
       Asym.G<-coef(fit.Gompertz.cases)[1]
@@ -372,19 +383,20 @@ server <- function(input, output, session) {
       predict.G<-data.frame(x=XX,y=yp.G)
       
       # exibe só os dados mais recentes
-      predict.filtra <- predict.G %>% filter(x > max(selectedCity$tempo-1))
-      selectedCity.filtra <- selectedCity %>% filter(tempo > max(selectedCity$tempo)-30)
+      predict.filtra <- predict.G %>% filter(x > max(selectedCity$tempo))
+      selectedCity.filtra <- selectedCity %>% filter(tempo > max(selectedCity$tempo)-20)
       
       # gera o grafico
       p<-  ggplot(selectedCity.filtra) + 
-        geom_line(aes(x = tempo, y = last_available_confirmed), size = 1, color = "blue") +
+        geom_line(aes(x = tempo, y = var), size = 1, color = "blue") +
         geom_point(aes(x=x, y = y, color = "red", alpha = .4),
                    data = predict.filtra) +
-        labs(title = 'Previsão de casos nos próximos 10 dias', subtitle=paste(input$cities,"-",input$state), x = 'Dias', 
-             y = 'Total de casos confirmados', fill = '') +
+        labs(x = 'Dias desde o primeiro caso', 
+             y = 'Total acumulado', fill = '') +
         theme_bw()
-      ggplotly(p) %>% config(displayModeBar = F) %>% hide_legend()
-      
+      ggplotly(p) %>% hide_legend() %>% config(displayModeBar = F)
+    
+       
     })
     
     output$mmPlot <- renderPlotly({
