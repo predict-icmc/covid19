@@ -5,6 +5,9 @@ Este respositório foi criado pelo grupo PREDICT como uma forma de centralizar o
 ## [shiny](shiny/site_final)
 código da página https://predict-icmc.shinyapps.io/covid-19/ e função pra baixar os dados.
 
+## [Leitura dos dados](leitura-dados)
+rotinas para obtencão dos dados epidemiologicos
+
 ## [Visualização e Exploração dos Dados](graficos)
 Códigos utilizados para ler e construir os gráficos.
 
