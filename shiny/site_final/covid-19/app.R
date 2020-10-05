@@ -1,67 +1,22 @@
-library(shiny)
-library(leaflet)
-library(RColorBrewer)
-library(tidyverse)
-library(feather)
-library(plotly)
-library(data.table)
-library(minpack.lm)
 
 # pegando novos dados
-# essa função baixa os dados mais recentes e salva na working dir
 # utilize a pegaCorona() para baixar os dados atualizados do brasil.io
-# ATENÇÃO: necessário possuir os arquivos 'latitude-longitude-cidades.csv' e 'latitude-longitude-estados.csv' na working directory
+# essa função baixa os dados mais recentes e salva na working dir
+# ATENÇÃO: necessário possuir os arquivos 'latitude-longitude-cidades.csv'
+# e 'latitude-longitude-estados.csv' na working directory
 
-# descomente as tres linhas abaixo, execute-as no R, depois comente novamente antes de rodar o shiny
-# em breve: cron jobs?
+# descomente as tres linhas abaixo, execute-as no R, depois comente novamente
+# antes de rodar o shiny. Em breve: cron jobs pra evitar essa gambiarra?
 
 #setwd("~/predict-covid19/shiny/site_final/covid-19")
 #source("merge-data.R")
 #pegaCorona()
 
-# arquivo feather a ser lido. Consulte merge-data.R para saber como gerar novos arquivos
-latlong <- "latlong-covid.feather"
-caso_full <- "full-covid.feather"
 
-# Variaveis a serem exibidas
-vars <- c(
-    "Total de Casos Confirmados" = "last_available_confirmed",
-    "Total de Óbitos" = "last_available_deaths",
-    "Letalidade" = "last_available_death_rate",
-    "Populacão Estimada 2019" = "estimated_population_2019",
-    "Novos Casos Confirmados" = "new_confirmed",
-    "Novos Óbitos" = "new_deaths"#,
-    #"Confirmados / 100 mil habitantes" = "last_available_confirmed_per_100k_inhabitants"
-)
+# carrega as dependencias, lê as variáveis e carrega-as para o ambiente
+source("load-data.R")
 
-vars_plot <- c(
-    "Total de Casos Confirmados" = "last_available_confirmed",
-    "Total de Óbitos" = "last_available_deaths",
-    "Letalidade" = "last_available_death_rate",
-    "Confirmados / 100 mil habitantes" = "last_available_confirmed_per_100k_inhabitants"
-)
-
-
-vars_plot_mm <- c(
-  "Novos Casos Confirmados" = "new_confirmed",
-  "Novos Óbitos" = "new_deaths"
-)
-
-vars_plot_pred <- c(
-  "Casos Confirmados" = "last_available_confirmed",
-  "Óbitos" = "last_available_deaths"
-)
-
-# leitura dos dados.
-dados <- read_feather(latlong)
-
-estados <- dados$state %>% unique %>% as.character()
-cleantable <- dados %>% select(state,city,estimated_population_2019,last_available_confirmed, last_available_deaths, last_available_death_rate,latitude,longitude,city_ibge_code)
-
-dt<-read_feather(caso_full)
-
-
-
+# interface do usuário - shiny
 ui <- fluidPage(
     
     
@@ -529,4 +484,4 @@ server <- function(input, output, session) {
 shinyApp(ui = ui, server = server)
 
 # enviar site
-#rsconnect::deployApp(account = "predict-covid")
+#rsconnect::deployApp(account = "predict-icmc")
