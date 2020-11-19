@@ -11,6 +11,7 @@ library(minpack.lm)
 # arquivo feather a ser lido. Consulte merge-data.R para saber como gerar novos arquivos
 latlong <- "latlong-covid.feather"
 caso_full <- "full-covid.feather"
+obcartorio <- "ob-cartorio.feather"
 
 # Variaveis a serem exibidas
 vars <- c(
@@ -47,4 +48,6 @@ dados <- read_feather(latlong)
 estados <- dados$state %>% unique %>% as.character()
 cleantable <- dados %>% select(state,city,estimated_population_2019,last_available_confirmed, last_available_deaths, last_available_death_rate,latitude,longitude,city_ibge_code)
 
-dt<-read_feather(caso_full)
+dt <- read_feather(caso_full)
+ 
+cart <- read_feather(obcartorio)

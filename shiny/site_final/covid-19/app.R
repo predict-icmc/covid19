@@ -8,7 +8,7 @@
 # descomente as tres linhas abaixo, execute-as no R, depois comente novamente
 # antes de rodar o shiny. Em breve: cron jobs pra evitar essa gambiarra?
 
-#setwd("~/predict-covid19/shiny/site_final/covid-19")
+#setwd("~/covid19/shiny/site_final/covid-19")
 #source("merge-data.R")
 #pegaCorona()
 
@@ -65,7 +65,8 @@ ui <- fluidPage(
                             
                             # Sidebar panel for inputs ----
                             sidebarPanel(position = "left",
-                              
+                                h4(textOutput("last_update"), align = "left"),
+                                         
                                 radioButtons("radio1", h3("Tipo de previsão"),
                                               choices = list("Municipal" = 1, "Estadual" = 0),# "Regional" = 2),
                                               selected = 1),
@@ -78,28 +79,37 @@ ui <- fluidPage(
                                         choices = estados,  selected = "SP"),
                               uiOutput(outputId = "choosecity_map",  selected ="São Paulo"),
                             
+                              
                               span(tags$i(h6("A notificação dos casos está sujeita a uma variação significativa devido a política de testagem e capacidade das Secretarias Estaduais e Municipais de Saúde.")), style="color:#045a8d"),
                               h3(textOutput("case_count"), align = "right"),
                               h3(textOutput("deaths_count"), align = "right"),
                               h3(textOutput("letality_count"), align = "right"),
                               h3(textOutput("new_cases_count"), align = "right"),
                               h3(textOutput("new_deaths_count"), align = "right"),
+                              
                            
                               ),
                             
                             mainPanel(
-                              h2("Previsão para os próximos 10 dias"),
+                              
+                              
+                              
+                              h2("Ajuste ao modelo de Gompertz"),
+                              h3("Previsão para os próximos 10 dias"),
                               radioButtons("predType", "", vars_plot_pred, selected = "last_available_confirmed"),
                               plotlyOutput(outputId = "predict_cases"),
+                              
                               h2("Variacão da média móvel"),
                               radioButtons("plotTypeMM", "", vars_plot_mm, selected = "new_confirmed"),
                               plotlyOutput(outputId = "mmPlot"),
                               
-                                                            
+                              
+                              h2("Acumulado no período"),                              
                               radioButtons("plotType", " ", vars_plot, selected = "last_available_confirmed"),
-                              plotlyOutput(outputId = "distPlot")
+                              plotlyOutput(outputId = "distPlot"),
                               
-                              
+                              h2("Óbitos de cartório em comparacão com 2019"),
+                              plotlyOutput(outputId = "cartMap")
                               
                             #plotlyOutput(outputId = "predict_deaths")
                             )
@@ -178,6 +188,28 @@ server <- function(input, output, session) {
     })
     
     
+    # anáilise de mortes em cartório
+    output$cartMap <- renderPlotly({
+    aq <- cart %>% filter(state == input$state & epidemiological_week_2019 < 47) %>%
+      mutate(
+        delta_respiratory_failure = new_deaths_respiratory_failure_2020 - new_deaths_respiratory_failure_2019,
+        delta_indeterminate = deaths_indeterminate_2020 - deaths_indeterminate_2019,
+        delta_others = deaths_others_2020 - deaths_others_2019,
+        delta_pneumonia = deaths_pneumonia_2020 - deaths_pneumonia_2019,
+        delta_septicemia = deaths_septicemia_2020 - deaths_septicemia_2019,
+        delta_sars = deaths_sars_2020 - deaths_sars_2019) %>%
+      select(date,delta_respiratory_failure,delta_indeterminate,delta_others,delta_pneumonia,delta_pneumonia,delta_septicemia,delta_sars)
+    
+    aq$date <- as.Date(aq$date)
+    aq <- aq %>% filter(date< as.POSIXct("2020-09-30"))
+    aw <- reshape2::melt(aq,id.vars = "date") 
+    
+    p<- aw %>% ggplot(aes(x = date, y = value)) + 
+      facet_wrap(~variable) +
+      geom_line()
+    ggplotly(p)
+    })
+    
     # observer que mantém os circulos e a legenda de acordo com as variaveis escolhidas pelo usr
     observe({
         colorBy <- input$color
@@ -236,6 +268,16 @@ server <- function(input, output, session) {
     })
     
     # sessao de gráficos
+    # label da ultima att
+    output$last_update <- renderText({
+      
+    
+      data <- dt %>% filter(state == input$state &
+                                       place_type == "state"& is_last == "True")
+      paste0("Atualizado em ",as.Date(data$date))
+    })
+    
+    
     # label do numero de casos
     output$case_count <- renderText({
       req(input$chooseCity)
@@ -323,10 +365,12 @@ server <- function(input, output, session) {
       selectedCity <- selectedCity %>% select(tempo, var = input$predType)
       
       # modelagem somente a partir dos ultimos 75 dias
-      selectedCity <- selectedCity %>% filter(tempo > max(selectedCity$tempo)-75)
+      selectedCity <- selectedCity #%>% filter(tempo > max(selectedCity$tempo)-75)
       # modelo de Gompertz com auto-inicialização
       fit.Gompertz.cases <- nlsLM(var ~ SSgompertz(tempo, Asym, b2, b3),
                                   data = selectedCity)
+      
+      # tempo de previsao: 10 dias
       XX = (0:(max(selectedCity$tempo)+10))
       Asym.G<-coef(fit.Gompertz.cases)[1]
       b2.G<-coef(fit.Gompertz.cases)[2]
@@ -338,8 +382,8 @@ server <- function(input, output, session) {
       predict.G<-data.frame(x=XX,y=yp.G)
       
       # exibe só os dados mais recentes
-      predict.filtra <- predict.G %>% filter(x > max(selectedCity$tempo))
-      selectedCity.filtra <- selectedCity %>% filter(tempo > max(selectedCity$tempo)-20)
+      predict.filtra <- predict.G %>% filter(x > max(selectedCity$tempo)-40)
+      selectedCity.filtra <- selectedCity %>% filter(tempo > max(selectedCity$tempo)-40)
       
       # gera o grafico
       p<-  ggplot(selectedCity.filtra) + 
@@ -349,7 +393,7 @@ server <- function(input, output, session) {
         labs(x = 'Dias desde o primeiro caso', 
              y = 'Total acumulado', fill = '') +
         theme_bw()
-      ggplotly(p) %>% hide_legend() %>% config(displayModeBar = F)
+      ggplotly(p) %>% hide_legend() #%>% config(displayModeBar = F)
     
        
     })
