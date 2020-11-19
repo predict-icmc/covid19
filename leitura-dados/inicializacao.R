@@ -17,3 +17,5 @@ df.cartorio <- read_feather(cartorio)                       #
 #############################################################
 demografico <- read.csv2("Dados_demograficos.csv",sep=",")  #
 #############################################################
+
+
