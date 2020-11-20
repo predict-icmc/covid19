@@ -8,6 +8,7 @@ library(ggbiplot)
 
 summary(bdcorr)
 
+
 df.pca<-bdcorrc %>% 
   select(IDH,gini,t_agua,rdpc,densidade,last_available_confirmed) %>% 
   na.omit()
@@ -22,7 +23,7 @@ df.pca<-data.frame(lapply(df.pca,as.double))
 
 pca.result<-prcomp(df.pca[,1:5],scale. = T)
 
-R<-pca.result$sdev
+R<-fit$sdev
 R
 v1<- round(R^2 / sum(R^2), 3) #proporção da variância explicada
 v2<- cumsum((R^2 / sum(R^2)))
@@ -49,3 +50,29 @@ ggbiplot(pca.result)
 
 ggbiplot(pca.result,ellipse=TRUE)
 
+
+
+df.pca<-bdcorrc %>% 
+  select(IDH,gini,t_agua,rdpc,densidade,last_available_confirmed) %>% 
+  na.omit()
+
+
+require(psych)
+
+
+
+df.pca<-demo %>% 
+  select(11:244) %>% 
+  na.omit()
+
+df.pca<-apply(df.pca,2,as.numeric)
+
+KMO(df.pca)
+fit<-princomp(df.pca,cor=TRUE)
+
+fit$scores
+summary(fit)
+fit$sdev
+plot(fit$sdev)
+
+fit$
