@@ -18,6 +18,9 @@ df.cartorio <- read_feather(cartorio)                       #
 demografico <- read.csv2("Dados_demograficos.csv",sep=",")  #
 #############################################################
 
+
+
+
 #####pegando apenas o último dia#############################
 df$date <- as.Date(df$date)                                 #
 df <- subset(df, date == max(date))                         #
