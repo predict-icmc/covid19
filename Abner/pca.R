@@ -6,11 +6,11 @@ library(devtools)
 library(ggbiplot)
 
 ## Função nova #################################################################
-
+library(tidyverse)
 require(psych)
 #selecionando variaveis
 df.pca<-last.data %>% 
-  select(IDH,gini,t_agua,rdpc,densidade,last_available_confirmed) %>% 
+  select(IDH,gini,t_agua,rdpc,densidade) %>% 
   na.omit()
 #Transformando para numerico
 df.pca<-apply(df.pca,2,as.numeric)
@@ -18,6 +18,7 @@ df.pca<-apply(df.pca,2,as.numeric)
 KMO(df.pca)
 fit<-princomp(df.pca,cor=TRUE)
 summary(fit)
+fit$loadings
 
 #########################################################################################
 #Função antiga

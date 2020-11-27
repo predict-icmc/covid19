@@ -6,7 +6,7 @@ correla<-demografico %>%
   select(IDH,espvida,gini,t_agua,rdpc,densidade) %>% 
   na.omit()
 
-correla<-data.frame(lapply(cor.sem.na,as.double))
+correla<-data.frame(lapply(correla,as.numeric))
 
 corrplot(cor(as.matrix(correla),method = "spearman"))
 
@@ -46,4 +46,5 @@ names(correla3)[names(correla3) == "last_available_confirmed_per_100k_inhabitant
 correla3<-data.frame(lapply(correla3,as.double))
 
 corrplot.mixed(cor(as.matrix(correla3),method = "spearman"))
+cov(correla3)
 ################################################################
