@@ -4,7 +4,7 @@ library(plotly)
 library(minpack.lm)
 library(data.table)
 
-
+# leitura dos dados na pasta
 caso_full <- "full-covid.feather"
 dt<-read_feather(caso_full)
 
@@ -20,11 +20,15 @@ scales::percent(variacao)
 
 p <- selectedCity %>% ggplot(aes(x = date, y= new_deaths)) + geom_bar(stat="identity") + geom_line(aes(y = a))
 ggplotly(p)
+
 # casos
 
 b <- frollmean(selectedCity$new_confirmed, 7) 
 
-write.csv(selectedCity, file = "sp.csv")
+#salvando o que a prof pediu (descomentar)
+#write.csv(selectedCity, file = "sp.csv")
+
+# autoarima
 library(forecast)
 
 fit <- forecast::auto.arima(selectedCity$new_confirmed)
@@ -37,6 +41,9 @@ Arima(order=c(3,0,1), seasonal=c(0,1,2), lambda=0) %>%
 
 autoplot(forecast(fit,20))
 
+
+
+# modelo antigo: Gompertz
 selectedCity %>% ggplot(aes(x = date, y= new_confirmed)) + geom_bar(stat="identity") + geom_line(aes(y = b))
 
 selectedCity %>% plot_ly() %>% add_bars(x = ~date, y = ~new_confirmed) %>% add_lines(x = ~date, y = ~b) %>% config(displayModeBar = F) %>% hide_legend()
