@@ -5,24 +5,40 @@ library(nnet)
 library(devtools)
 library(ggbiplot)
 
+## Função nova #################################################################
+library(tidyverse)
+require(psych)
+#selecionando variaveis
+df.pca<-last.data %>% 
+  select(IDH,gini,t_agua,rdpc,densidade) %>% 
+  na.omit()
+#Transformando para numerico
+df.pca<-apply(df.pca,2,as.numeric)
+#aplicando o metodo de componentes principais
+KMO(df.pca)
+fit<-princomp(df.pca,cor=TRUE)
+summary(fit)
+fit$loadings
 
+#########################################################################################
+#Função antiga
 summary(bdcorr)
 
+#Selecionando variaveis
 df.pca<-bdcorrc %>% 
   select(IDH,gini,t_agua,rdpc,densidade,last_available_confirmed) %>% 
   na.omit()
-
-
 
 #names(df.pca)[names(df.pca) == "last_available_confirmed_per_100k_inhabitants"] <- "ultimo_caso_100k"
 
 df.pca<-data.frame(lapply(df.pca,as.double))
 
 #df.pca<-data.frame(apply(df.pca ,MARGIN = 2,FUN = rescale))
-
+#Aplicando componentes princiapais
 pca.result<-prcomp(df.pca[,1:5],scale. = T)
 
-R<-pca.result$sdev
+#Analisando os desvioes padroes
+R<-fit$sdev
 R
 v1<- round(R^2 / sum(R^2), 3) #proporção da variância explicada
 v2<- cumsum((R^2 / sum(R^2)))
@@ -41,11 +57,13 @@ plot(cumsum( R^2 / sum( (R^2))), type="b", pch=16,
 abline(h = 0.9, v = 11, col=c("red","blue"), lwd=2, lty= 3)
 axis(1, at= 6, labels=6, col.axis="blue")
 
-
+#pegando os dados transformados
 pca.dados<-data.frame(pca.result$x)
 pca.result$x
 
 ggbiplot(pca.result)
 
 ggbiplot(pca.result,ellipse=TRUE)
+
+#################################################################################
 
