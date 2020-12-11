@@ -21,34 +21,34 @@ set.seed(2020)
 
 # realizando a amostragem de tamanho 10 para cada estado
 
-## removendo DF para adciona-lo posteriormente
+## removendo DF 
 
 swall <- swall[swall$uf != "DF",]
 
-swall_uf <- do.call(rbind,lapply(split(swall, swall$uf), function(i)
-          i[sample(1:nrow(i), size = 10, replace = T),]))  
+# realizando a amostragem de tamanho 10 para cada estado
+swall_am <- do.call(rbind,lapply(split(swall, swall$uf), function(i)
+          i[sample(1:nrow(i), size = 20, replace = T),]))  
 
-swall_uf <- swall_uf %>% na.omit() 
+swall_am <- swall_uf %>% na.omit() 
 
-swall <- swall_uf %>% 
-  select(uf,IDH,gini,t_agua,rdpc,densidade,last_available_confirmed) %>% 
-  na.omit()
+
 # renomeando last_available_confirmed para Y
 
-swall <- swall %>% 
+swall_am <- swall_am %>% 
   rename(
     Y = last_available_confirmed
   )
 
-do.call(rbind,
-        lapply(split(df, df$type1), function(i)
-          i[sample(1:nrow(i), size = 10, replace = TRUE),]))
-
-a <- step(lm(Y~.,data=swall),direction="forward")
+## Stepwise - metodo foward
+a <- step(lm(Y~uf+IDH+gini+rdpc+densidade,data=swall_am),direction="forward")
 a
 
-a <- step(lm(Y~.,data=swall),direction="backward")
-a
+## Stepwise - metodo backward (do modelo geral para o "melhor")
+b <- step(lm(Y~.,data=swall_am),direction="backward")
+b
 
-a <- stepAIC(lm(Y~.,data=swall),direction="both")
-a
+## Stepwise - metodo backward
+c <- step(lm(Y~.,data=swall_am),direction="both")
+c
+
+lm(Y~IDH+t_agua)
