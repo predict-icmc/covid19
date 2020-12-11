@@ -4,10 +4,11 @@ library(plotly)
 library(minpack.lm)
 library(data.table)
 
-
+# leitura dos dados na pasta
 caso_full <- "full-covid.feather"
 dt<-read_feather(caso_full)
 
+write.csv(dt,"caso_full.csv")
 selectedCity <- dt %>% filter(state == "SP" &
                                 city == "São Paulo" &
                                 place_type == "city")
@@ -19,10 +20,30 @@ scales::percent(variacao)
 
 p <- selectedCity %>% ggplot(aes(x = date, y= new_deaths)) + geom_bar(stat="identity") + geom_line(aes(y = a))
 ggplotly(p)
+
 # casos
 
 b <- frollmean(selectedCity$new_confirmed, 7) 
 
+#salvando o que a prof pediu (descomentar)
+#write.csv(selectedCity, file = "sp.csv")
+
+# autoarima
+library(forecast)
+
+fit <- forecast::auto.arima(selectedCity$new_confirmed)
+
+selectedCity$new_confirmed %>% 
+Arima(order=c(3,0,1), seasonal=c(0,1,2), lambda=0) %>%
+  forecast() %>%
+  autoplot() +
+  ylab("H02 sales (million scripts)") + xlab("Year")
+
+autoplot(forecast(fit,20))
+
+
+
+# modelo antigo: Gompertz
 selectedCity %>% ggplot(aes(x = date, y= new_confirmed)) + geom_bar(stat="identity") + geom_line(aes(y = b))
 
 selectedCity %>% plot_ly() %>% add_bars(x = ~date, y = ~new_confirmed) %>% add_lines(x = ~date, y = ~b) %>% config(displayModeBar = F) %>% hide_legend()
@@ -47,6 +68,9 @@ fit.Gompertz.cases <- nlsLM(last_available_confirmed ~ SSgompertz(tempo, Asym, b
   predict.filtra <- predict.G %>% filter(x > max(selectedCity$tempo-1))
   
   selectedCity.filtra <- selectedCity %>% filter(tempo > max(selectedCity$tempo)-30)
+  
+  
+  
     # gera o grafico
  p<-  ggplot(selectedCity.filtra) + 
     geom_line(aes(x = tempo, y = last_available_confirmed), size = 1, color = "blue") +
