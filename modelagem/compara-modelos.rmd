@@ -7,30 +7,116 @@ output:
   html_document: default
 ---
 
-## Lendo os dados
+# Comparação de modelos preditivos para o número de casos confirmados de Covid-19
 
-Para obter os dados mais atuais do Covid-19 do site `brasil.io` utilizamos o pacote `Gather-Covid`
+Neste projeto utilizaremos três modelos (Gompertz, ARIMA e Redes Neurais) para tentar prever o comportamento da pandemia de Covid-19 através do número total de casos confirmados na cidade de São Paulo - SP.
 
-```{r}
+
+## Conjunto de dados
+
+Para obter os dados mais atuais do Covid-19 do site `brasil.io` utilizamos o pacote `Gather-Covid`.
+
+Informações detalhadas sobre os datasets podem ser encontradas em <https://github.com/turicas/covid19-br/blob/master/api.md>.
+
+```{r message=FALSE}
 # Para instalar utilize o comando
 #remotes::install_github("predict-icmc/gather-data")
 
 library(tidyverse)
 library(gather.covid)
 
-df <- pegaCorona(tipo = "caso_full")
-selectedCity <- df %>% filter(city == "São Paulo")
+selectedCity <- pegaCorona(tipo = "caso_full", baixar = F) %>% filter(city == "São Paulo")
+
+```
+## Modelagem
+
+Utilizaremos duas bases de treino e teste, conforme descrito na tabela abaixo:
+
+|        | Treino | Teste   |
+|--------|--------|---------|
+| Fase 1 | 1:180  | 181:195 |
+| Fase 2 | 1:300  | 301:315 |
+
+```{r split-sets}
+#--- Conjuntos Treino e Teste
+treino1 <- selectedCity$new_confirmed[1:180]
+teste1 <-selectedCity$new_confirmed[181:195]
+
+treino2 <- selectedCity$new_confirmed[1:300]
+teste2 <-selectedCity$new_confirmed[301:315]
+
+```
+
+### Gompertz
+
+```{r gompertz-model}
+library(nls.multstart)
+
+#modelo gompertz auto inicializavel para numero diario total de casos confirmados
+
+fit.Gompertz <- function(treino){
+  
+  fit.Gompertz.1 <- nlsLM(last_available_confirmed ~ SSgompertz(tempo, Asym, b2, b3),
+                             data = treino)
+  
+  XX = (0:(max(treino$tempo)+14))
+  
+  Asym.G<-coef(fit.Gompertz.1)[1]
+  b2.G<-coef(fit.Gompertz.1)[2]
+  b3.G<-coef(fit.Gompertz.1)[3]
+     
+  yp.G<-Asym.G*exp((-b2.G)*(b3.G)^XX)
+       
+  return (tibble(x=XX,y=yp.G))
+}
 
 ```
 
 
 ```{r}
+library(modelr)
+
+treino1G <- selectedCity %>% select(tempo, last_available_confirmed) %>% filter(tempo < 181)
+teste1G <- selectedCity %>% select(tempo, last_available_confirmed) %>% filter(tempo %in% 181:195)
+
+treino2G <- selectedCity %>% select(tempo, last_available_confirmed) %>% filter(tempo < 301)
+teste2G <- selectedCity %>% select(tempo, last_available_confirmed) %>% filter(tempo %in% 301:315)
+
+
+# Modelos de Gompertz para as fases 1 e 2
+fit1G <- fit.Gompertz(treino1G)
+fit2G <- fit.Gompertz(treino2G)
+     
+# gera o grafico
+
+g1 <- ggplot() +
+  geom_col(aes(x = tempo, y = last_available_confirmed), data = treino1G) +
+  geom_col(aes(x = tempo, y = last_available_confirmed, color = "red"), data = teste1G) +
+  geom_line(aes(x=x, y = y), data = fit1G)
+
+## RMSE dos modelos
+fitg1 <- nlsLM(last_available_confirmed ~ SSgompertz(tempo, Asym, b2, b3),
+                             data = treino1G)
+fitg1 %>% rmse(data = teste1G)
+
+fitg2 <- nlsLM(last_available_confirmed ~ SSgompertz(tempo, Asym, b2, b3),
+                             data = treino2G)
+fitg2 %>% rmse(data = teste2G)
+
+# Diagnóstico do modelo
+qqplot(x = 1:length(residuals(fitg1)), residuals(fitg1))
+qqplot(x = 1:length(residuals(fitg2)), residuals(fitg2))
+
+```
+
+
+
+### ARIMA
+
+```{r}
 #---- testes Fla
 library(forecast)
 
-#--- Conjuntos Treino e Teste
-treino<-selectedCity$new_confirmed[1:276]
-test<-selectedCity$new_confirmed[277:290]
 
 modelo <- auto.arima(treino,
                     trace = T, # habilitando o display para acompanhar
@@ -60,6 +146,8 @@ ggplotly(p)
 
 #- comparar a previsao com o conj teste
 ```
+### Redes Neurais
+
 ```{r}
 library(fpp)
 library(tidyverse)
@@ -68,8 +156,7 @@ library(modelr)
 library(plotly)
 
 #Separando o banco de dados para apenas o estado de são paulo
-redes <-df%>%
-  filter(state=="SP" & place_type=="state") %>% 
+redes <-selectedCity %>% 
   select(new_confirmed,date)
 
 #Não precisa padronizar os dados eu acho(?)
