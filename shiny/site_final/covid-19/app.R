@@ -334,67 +334,81 @@ server <- function(input, output, session) {
     
     # label do numero de casos
     output$case_count <- renderText({
-      req(input$chooseCity)
       
-      if(input$radio1 == 1)
+      if(input$radio1 == 1){
+        req(input$chooseCity)
         total_casos <- dt %>% filter(state == input$state &
                                         city == input$chooseCity &
                                         place_type == "city" & is_last == "True") 
-      else
+      }
+      else if(input$radio1 == 0){
+        req(input$state)
         total_casos <- dt %>% filter(state == input$state &
                                         place_type == "state"& is_last == "True")
+      }
       paste0(prettyNum(total_casos$last_available_confirmed, big.mark=".", decimal.mark = ","), " casos\n")
     })
     
     # labels de texto dos gráficos
     # label do numero de mortes
     output$deaths_count <- renderText({
-        req(input$chooseCity)
-        
-        if(input$radio1 == 1)
+        if(input$radio1 == 1){
+          req(input$chooseCity)
             total_casos <- dt %>% filter(state == input$state &
                                              city == input$chooseCity &
                                              place_type == "city" & is_last == "True") 
-        else
+        }
+        else if(input$radio1 == 0){
+          req(input$state)
             total_casos <- dt %>% filter(state == input$state &
                                              place_type == "state"& is_last == "True")
+        }
         paste0(prettyNum(total_casos$last_available_deaths, big.mark=".", decimal.mark = ","), " óbitos\n")
     })
     # label do numero de novos casos
     output$new_cases_count <- renderText({
         req(input$chooseCity)
-        if(input$radio1 == 1)
+        if(input$radio1 == 1){
+          req(input$chooseCity)
             total_casos <- dt %>% filter(state == input$state &
                                              city == input$chooseCity &
                                              place_type == "city" & is_last == "True") 
-        else
-            total_casos <- dt %>% filter(state == input$state &
+        }
+        else if(input$radio1 == 0){
+          req(input$state)
+             total_casos <- dt %>% filter(state == input$state &
                                              place_type == "state"& is_last == "True")
+        }
         paste0(prettyNum(total_casos$new_confirmed, big.mark=".", decimal.mark = ","), " novos casos\n")
     })
     # label do numero de novas mortes
     output$new_deaths_count <- renderText({
-        req(input$chooseCity)
-        if(input$radio1 == 1)
+        if(input$radio1 == 1){
+          req(input$chooseCity)
             total_casos <- dt %>% filter(state == input$state &
                                              city == input$chooseCity &
                                              place_type == "city" & is_last == "True") 
-        else
+        }
+        else if(input$radio1 == 0){
+          req(input$state)
             total_casos <- dt %>% filter(state == input$state &
                                              place_type == "state"& is_last == "True")
+        }
         paste0(prettyNum(total_casos$new_deaths, big.mark=".", decimal.mark = ","), " novos óbitos\n")
     })
     # label da taxa de letalidade
     output$letality_count <- renderText({
-        req(input$chooseCity)
-        
-        if(input$radio1 == 1)
+        if(input$radio1 == 1){
+          req(input$chooseCity)
             total_casos <- dt %>% filter(state == input$state &
                                              city == input$chooseCity &
                                              place_type == "city" & is_last == "True") 
-        else
+        }
+        else if(input$radio1 == 0){
+          req(input$state)
             total_casos <- dt %>% filter(state == input$state &
                                              place_type == "state"& is_last == "True")
+        }
         paste0(scales::percent(total_casos$last_available_death_rate), " letalidade\n")
     })
     
@@ -405,7 +419,7 @@ server <- function(input, output, session) {
       #req(input$predType)
       #req(input$chooseCity)
       req(input$state)
-      show_modal_spinner() # show the modal window
+      
       
     # cidade ou estado 
     if(input$radio1 == 1)
@@ -424,14 +438,19 @@ server <- function(input, output, session) {
     
     #browser()
       #mm <- selectedCity %>% select(input$predType) %>% frollmean(7)
+      # pra fazer com a media movel
       mm <- frollmean(selectedCity$new_confirmed,7)
       
-      fit <- nnetar(mm,lambda ="auto",p=7)
+      # modelagem do total de confirmados
+      fit <- nnetar(selectedCity$new_confirmed, p = 7)
       
       # isso aqui demora um bocado.
+      show_modal_spinner() # loading bar
+      
       # intervalos de confiança para a predição
-      pred <- predict(fit,14, PI = T, level = c(0.95, 0.80))
-      remove_modal_spinner() # remove it when done
+      pred <- forecast(fit,21, PI = T, level = c(0.95,0.80))
+      
+      remove_modal_spinner() # remove a barra de carregamento
       #browser()
       
       trace1 <- list(
@@ -456,25 +475,25 @@ server <- function(input, output, session) {
         mode = "lines", 
         name = "95% confiança", 
         type = "scatter", 
-        x = pandate(c(time(pred$upper[,1]),rev(time(pred$lower[,1])))),
+        x = c(min(selectedCity$date) - ddays(1) + ddays(time(pred$mean)), rev( min( selectedCity$date)  - ddays(1) + ddays( time( pred$mean)))),
         y = round( c( pred$upper[,1], rev(pred$lower[,1]))),
         xaxis = "x", 
         yaxis = "y", 
         hoveron = "points"
       )
       trace3 <- list(
-        fill = "toself", 
+        fill = "toself",
         line = list(
-          color = "rgba(204,204,204,1)", 
+          color = "rgba(204,204,204,1)",
           fillcolor = "rgba(204,204,204,1)"
-        ), 
-        mode = "lines", 
-        name = "80% confiança", 
-        type = "scatter", 
-        x = pandate(c(time(pred$upper[,1]),rev(time(pred$lower[,1])))),
+        ),
+        mode = "lines",
+        name = "80% confiança",
+        type = "scatter",
+        x = c(min(selectedCity$date) - ddays(1) + ddays(time(pred$mean)), rev( min( selectedCity$date)  - ddays(1)+ ddays( time( pred$mean)))),
         y = round( c( pred$upper[,2], rev(pred$lower[,2]))),
-        xaxis = "x", 
-        yaxis = "y", 
+        xaxis = "x",
+        yaxis = "y",
         hoveron = "points"
       )
       trace4 <- list(
@@ -483,16 +502,16 @@ server <- function(input, output, session) {
           fillcolor = "rgba(0,0,255,1)"
         ), 
         mode = "lines", 
-        name = "predição", 
+        name = "previsão", 
         type = "scatter", 
-        x = pandate( time( pred$mean)), 
+        x = min(selectedCity$date)  - ddays(1) + ddays(time(pred$mean)), 
         y = round( pred$mean), 
         xaxis = "x", 
         yaxis = "y"
       )
       data <- list(trace1, trace2, trace3, trace4)
       layout <- list(
-        title = paste0("Estado de ",input$state), 
+        title = paste0("Estado de ",input$state),
         xaxis = list(
           title = "Data", 
           domain = range(selectedCity$date)
@@ -528,7 +547,7 @@ server <- function(input, output, session) {
         selectedCity <- dt %>% filter(state == input$state &
                                         city == input$chooseCity &
                                         place_type == "city")
-      else
+      else if(input$radio1 == 0)
         selectedCity <- dt %>% filter(state == input$state &
                                         place_type == "state")
       
@@ -557,7 +576,7 @@ server <- function(input, output, session) {
             selectedCity <- dt %>% filter(state == input$state &
                                       city == input$chooseCity &
                                       place_type == "city")
-      else
+      else if(input$radio1 == 0)
         selectedCity <- dt %>% filter(state == input$state &
                                         place_type == "state")
       
