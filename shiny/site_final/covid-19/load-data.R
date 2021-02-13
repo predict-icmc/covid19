@@ -1,11 +1,24 @@
 library(shiny)
 library(leaflet)
 library(RColorBrewer)
-library(tidyverse)
+#trocar pelas funcoes
+#library(tidyverse)
+library(magrittr)
+library(dplyr)
+library(ggplot2)
+library(memoise)
 library(feather)
 library(plotly)
 library(data.table)
-library(minpack.lm)
+#library(minpack.lm)
+library(forecast)
+#remotes::install_github("predict-icmc/gather-data")
+library(gather.covid)
+library(shinybusy)
+library(brazilmaps)
+library(viridis)
+library(sf)
+library(lubridate)
 
 
 # arquivo feather a ser lido. Consulte merge-data.R para saber como gerar novos arquivos
@@ -20,8 +33,8 @@ vars <- c(
   "Letalidade" = "last_available_death_rate",
   "Populacão Estimada 2019" = "estimated_population_2019",
   "Novos Casos Confirmados" = "new_confirmed",
-  "Novos Óbitos" = "new_deaths"#,
-  #"Confirmados / 100 mil habitantes" = "last_available_confirmed_per_100k_inhabitants"
+  "Novos Óbitos" = "new_deaths",
+  "Confirmados / 100 mil habitantes" = "last_available_confirmed_per_100k_inhabitants"
 )
 
 vars_plot <- c(
@@ -45,9 +58,11 @@ vars_plot_pred <- c(
 # leitura dos dados.
 dados <- read_feather(latlong)
 
-estados <- dados$state %>% unique %>% as.character()
+
 cleantable <- dados %>% select(state,city,estimated_population_2019,last_available_confirmed, last_available_deaths, last_available_death_rate,latitude,longitude,city_ibge_code)
 
-dt <- read_feather(caso_full)
- 
+dt <- read_feather(caso_full) %>% filter(estimated_population_2019 > 200000)
+estados <- dados$state %>% unique %>% as.character() 
 cart <- read_feather(obcartorio)
+
+
