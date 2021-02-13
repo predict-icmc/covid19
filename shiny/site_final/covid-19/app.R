@@ -38,9 +38,10 @@ ui <- fluidPage(
                                           
                                           radioButtons("radio", h3("Listar por"),
                                                        choices = list("Cidades" = 1, "Estados" = 0),# "Regiões" = 2),
-                                                       selected = 0)#,
+                                                       selected = 0),
                                           
-                                          #selectInput("color", "Variável:", vars, selected = "last_available_confirmed"),
+                                          selectInput("color", "Variável:", vars, selected = "last_available_confirmed_per_100k_inhabitants"),
+                                          checkboxInput("log", "Escala log", value = FALSE)
                                           #selectInput("size", "Size", vars, selected = "last_available_death_rate")#,
                                           
                                           #conditionalPanel("input.color == 'superzip' || input.size == 'superzip'",
@@ -94,8 +95,9 @@ ui <- fluidPage(
                               
                               
                               
-                              #h2("Ajuste ao modelo de Gompertz"),
-                              h3("Previsão da média móvel de casos para os próximos 14 dias"),
+                              
+                              h2("Previsão de casos para os próximos 21 dias"),
+                              h4("Ajuste ao modelo de Redes Dinâmicas"),
                               #radioButtons("predType", "", vars_plot_mm, selected = "last_available_confirmed"),
                               plotlyOutput(outputId = "predict_cases"),
                               
@@ -104,6 +106,7 @@ ui <- fluidPage(
                               #plotlyOutput(outputId = "mmPlot"),
                               
                               h2("Comparacão 2019-2020 de óbitos notificados em cartório"),
+                              h5("Pode haver atraso de até 60 dias na consolidação dos dados"),
                               plotlyOutput(outputId = "cartMap"),
                               
                               
@@ -149,11 +152,21 @@ ui <- fluidPage(
                ),
                
                tabPanel("Sobre",
+                        
                         titlePanel(h2("Sobre o Predict-Covid19")),
                         mainPanel(
-                        paste("Este projeto visa a análise de dados de COVID-19 por meio de técnicas de visualização de dados e modelos preditivos, para o dimensionamento e prevenção dos impactos da epidemia de COVID-19 e outras síndromes respiratórias agudas graves, utilizando estatística e ciência de dados. Nossa proposta envolve a predição do número de casos e óbitos, a demanda de internações hospitalares de acordo com diferentes intervenções não farmacológicas, o que inclui medidas de distanciamento social, isolamento voluntário, isolamento de sintomáticos, uso de equipamentos de proteção individual (EPIs), monitoramento de contatos próximos ou domiciliares, triagem em serviços de saúde, entre outras.")
-                        )
+                        paste("Este projeto visa a análise de dados de COVID-19 por meio de técnicas de visualização de dados e modelos preditivos, para o dimensionamento e prevenção dos impactos da epidemia de COVID-19 e outras síndromes respiratórias agudas graves, utilizando estatística e ciência de dados. Nossa proposta envolve a predição do número de casos e óbitos, a demanda de internações hospitalares de acordo com diferentes intervenções não farmacológicas, o que inclui medidas de distanciamento social, isolamento voluntário, isolamento de sintomáticos, uso de equipamentos de proteção individual (EPIs), monitoramento de contatos próximos ou domiciliares, triagem em serviços de saúde, entre outras."),
                         
+                        h2("Equipe"),
+                        tags$ul(
+                          tags$li("Cibele Russo"),
+                          tags$li("Abner Leite"),
+                          tags$li("Flaviane Louzeiro"),
+                          tags$li("Francisco Rosa Dias de Miranda"),
+                          tags$li("Paulo Filho"),
+                          tags$li("Yuri Reis")
+                        )
+                        )
                         )
                
     ),
@@ -189,35 +202,11 @@ server <- function(input, output, session) {
     })
     
     
-    # anáilise de mortes em cartório
-    output$cartMap <- renderPlotly({
-      
-      covdeaths <- dt %>% filter(state == input$state & place_type == "state") %>% select(date,new_deaths)
-      ex <- cart %>% filter(state == input$state) %>%  select(new_deaths_total_2020,new_deaths_total_2019,date)
-      ex$date <- ex$date %>% as.Date()
-      
-      ex <- left_join(ex,covdeaths, by = c("date" = "date")) 
-      # trocando os NA's por zero
-      ex[is.na(ex)] = 0
-      
-      ex <- tibble("Variação 2019-2020" = ex$new_deaths_total_2020 - ex$new_deaths_total_2019, date = ex$date, "Óbitos de Covid-19" = ex$new_deaths)
-      #ex <- ex %>% mutate(new_deaths = new_deaths_total_2019 + new_deaths)
-      plt <- ex %>% reshape2::melt(id.vars = "date")
-      p <- plt %>% 
-        ggplot( aes(x=date, y=value, fill=variable, text=variable)) +
-        geom_area( ) +
-        scale_fill_viridis(discrete = TRUE) +
-        ggtitle(paste0("Mortes em excesso no estado de ", input$state)) +
-        geom_vline(aes(xintercept = as.Date("2020-03-13")))
-      #theme(legend.position="none")
-      
-      ggplotly(p)
-      
-    })
-    
+   
     # observer que mantém os circulos e a legenda de acordo com as variaveis escolhidas pelo usr
     observe({
-      
+              
+        req(input$color)
         colorBy <- input$color
         
         if(input$radio == 1){
@@ -247,27 +236,32 @@ server <- function(input, output, session) {
             shp_sf <- left_join(shp_sf,dados, by = c("State" = "city_ibge_code"))
             }
         #browser()
-        #colorData <- zipdata[[colorBy]]
-        #pal <- colorBin("Reds", colorData, 8, pretty = T)
+        colorData <- shp_sf[[colorBy]] 
+        
+        if(input$log)
+          colorData <- log10(colorData)
+        
+        pal <- colorBin("Reds", colorData, 5, pretty = T)
         #pal <- colorNumeric(palette = "Reds", domain = colorData)
-        pal <- colorNumeric(palette = "Reds", domain = shp_sf$last_available_confirmed_per_100k_inhabitants)
+        #pal <- colorNumeric(palette = "Reds", domain = shp_sf$last_available_confirmed_per_100k_inhabitants)
         
         #radius <- zipdata[[sizeBy]] / max(zipdata[[sizeBy]]) * 100
         
+         
         leafletProxy("map", data = shp_sf) %>%
-          clearGroup("Polygons") %>% 
+          clearShapes() %>% 
           addPolygons(data = shp_sf,
                       smoothFactor = 0.5,
-                      fillOpacity = 0.5,
-                      weight = 0.5,
-                      color = ~pal(last_available_confirmed_per_100k_inhabitants),
+                      #fillOpacity = 0.5,
+                      #weight = 0.5,
+                      fillColor = ~pal(colorData),
                       opacity = 0.8,
                       stroke = FALSE,
                       highlightOptions = highlightOptions(color = "black",
                                                           weight = 2,
                                                           bringToFront = TRUE),
                       popup = ~paste0(sep = " ",
-                                      "<b>", city," - ", state,"<b><br>",
+                                      "<b>", nome,"<b><br>",
                                       "<b>Casos confirmados: </b>", last_available_confirmed, "<br>",
                                       "<b>Casos por 100k habitantes: </b>", last_available_confirmed_per_100k_inhabitants,tags$br(),
                                       "Novos casos: ", new_confirmed, tags$br(),
@@ -276,39 +270,39 @@ server <- function(input, output, session) {
                                       "Total de Casos Confirmados: ", last_available_confirmed, tags$br(),
                                       "Total de óbitos: ", last_available_deaths, tags$br(),
                                       "Taxa de letalidade: ",last_available_death_rate),
-                      label = ~city, layerId=~City) %>% 
+                      label = ~nome, layerId=~City) %>% 
           #addPolygons(~longitude, ~latitude, layerId=~city_ibge_code,
             #                 stroke=FALSE, fillOpacity=0.3, fillColor=pal(colorData)) %>%
             #addLegend("bottomright", pal=pal, values=colorData, title=colorBy,
             #          layerId="colorLegend")
           addLegend("bottomright",
-                    title = "Casos confirmados por<br>100k habitantes", 
+                    title = colorBy, 
                     pal = pal, 
-                    values = ~last_available_confirmed_per_100k_inhabitants, 
+                    values = colorBy, 
                     opacity = 0.8, layerId="colorLegend")
     })
     
-    # funcao que mostra a cidade clicada
-    showCityPopup <- function(city_ibge_code, lat, lng) {
-        selectedZip <- dados[dados$city_ibge_code == city_ibge_code,]
-        content <- as.character(tagList(
-            tags$h4(HTML(sprintf("%s %s",
-                                 selectedZip$city, selectedZip$state
-            ))),
-            sprintf("Novos casos: %s", selectedZip$new_confirmed), tags$br(),
-            sprintf("Novos óbitos: %s", selectedZip$new_deaths),tags$br(),
-            sprintf("Populacão: %s", as.integer(selectedZip$estimated_population_2019)),tags$br(),
-            sprintf("Total de Casos Confirmados: %s", as.integer(selectedZip$last_available_confirmed)), tags$br(),
-            sprintf("Total de óbitos: %s", as.integer(selectedZip$last_available_deaths)), tags$br(),
-            sprintf("Taxa de letalidade: %s%%", selectedZip$last_available_death_rate)
-        ))
-        leafletProxy("map") %>% addPopups(lng, lat, content, layerId = city_ibge_code)
-        
-    }
+    # # funcao que mostra a cidade clicada
+    # showCityPopup <- function(city_ibge_code, lat, lng) {
+    #     selectedZip <- dados[dados$city_ibge_code == city_ibge_code,]
+    #     content <- as.character(tagList(
+    #         tags$h4(HTML(sprintf("%s %s",
+    #                              selectedZip$city, selectedZip$state
+    #         ))),
+    #         sprintf("Novos casos: %s", selectedZip$new_confirmed), tags$br(),
+    #         sprintf("Novos óbitos: %s", selectedZip$new_deaths),tags$br(),
+    #         sprintf("Populacão: %s", as.integer(selectedZip$estimated_population_2019)),tags$br(),
+    #         sprintf("Total de Casos Confirmados: %s", as.integer(selectedZip$last_available_confirmed)), tags$br(),
+    #         sprintf("Total de óbitos: %s", as.integer(selectedZip$last_available_deaths)), tags$br(),
+    #         sprintf("Taxa de letalidade: %s%%", selectedZip$last_available_death_rate)
+    #     ))
+    #     leafletProxy("map") %>% addPopups(lng, lat, content, layerId = city_ibge_code)
+    #     
+    # }
     
     
     
-    #observador que mostra a cidade clicada
+    #observador que mostra a cidade clicada a partir da tabela
     observe({
         leafletProxy("map") %>% clearPopups()
         event <- input$map_marker_click
@@ -322,6 +316,35 @@ server <- function(input, output, session) {
     })
     
     # sessao de gráficos
+    
+    # anáilise de mortes em cartório
+    output$cartMap <- renderPlotly({
+      
+      covdeaths <- dt %>% filter(state == input$state & place_type == "state") %>% select(date,new_deaths)
+      ex <- cart %>% filter(state == input$state) %>%  select(new_deaths_total_2020,new_deaths_total_2019,date)
+      ex$date <- ex$date %>% as.Date()
+      
+      ex <- left_join(ex,covdeaths, by = c("date" = "date")) 
+      # trocando os NA's por zero
+      ex[is.na(ex)] = 0
+      
+      ex <- tibble("Variação 2019-2020" = ex$new_deaths_total_2020 - ex$new_deaths_total_2019, date = ex$date, "Óbitos de Covid-19" = ex$new_deaths)
+      #ex <- ex %>% mutate(new_deaths = new_deaths_total_2019 + new_deaths)
+      plt <- ex %>% reshape2::melt(id.vars = "date")
+      p <- plt %>% 
+        ggplot( aes(x=date, y=value, fill=variable, text=variable)) +
+        geom_area( ) +
+        scale_fill_viridis(discrete = TRUE) +
+        ggtitle(paste0("Mortes em excesso no estado de ", input$state)) +
+        geom_vline(aes(xintercept = as.Date("2020-03-13")))
+      #theme(legend.position="none")
+      
+      ggplotly(p)
+      
+    })
+    
+    
+    
     # label da ultima att
     output$last_update <- renderText({
       
@@ -414,6 +437,12 @@ server <- function(input, output, session) {
     
     # previsoes no plot_ly. Finalmente!
     
+    calcula_pred <- function(fit){
+      return (forecast(fit,21, PI = T, level = c(0.95,0.80)))
+    }
+    #deixando essa parte lenta no cache
+    calcula_pred_c <- memoise(calcula_pred)
+    
     output$predict_cases <- renderPlotly({
     # tratamento do reactive  
       #req(input$predType)
@@ -448,7 +477,7 @@ server <- function(input, output, session) {
       show_modal_spinner() # loading bar
       
       # intervalos de confiança para a predição
-      pred <- forecast(fit,21, PI = T, level = c(0.95,0.80))
+      pred <- calcula_pred_c(fit)
       
       remove_modal_spinner() # remove a barra de carregamento
       #browser()
