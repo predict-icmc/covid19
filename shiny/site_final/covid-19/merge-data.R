@@ -45,6 +45,7 @@ dados$tempo<- as.numeric(as.Date(dados$date) - min(as.Date(dados$date)))
 dados$date <- as.Date(dados$date)
 
 # acrescentar a media_movel
+<<<<<<< HEAD
 
 dados <- dados %>% 
   arrange(desc(city_ibge_code)) %>% 
@@ -63,6 +64,8 @@ dados <- dados %>%
   ungroup()
 
 
+=======
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
 write_feather(cart,sprintf("ob-cartorio.feather"))
 write_feather(dados,sprintf("full-covid.feather"))
 #drop_upload("full-covid.feather", dtoken = token)
@@ -95,6 +98,7 @@ write_feather(dados,sprintf("latlong-covid.feather"))
 
 print("Dados baixados e salvos com sucesso.")
 #drop_upload("latlong-covid.feather", dtoken = token)
+<<<<<<< HEAD
 }
 
 baixar_seade <- function(){
@@ -125,3 +129,6 @@ baixar_seade <- function(){
   write_feather(casos_drs, sprintf("seade-covid.feather"))  
 }
 
+=======
+}
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2

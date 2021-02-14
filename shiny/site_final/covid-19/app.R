@@ -5,6 +5,7 @@
 # ATENÇÃO: necessário possuir os arquivos 'latitude-longitude-cidades.csv'
 # e 'latitude-longitude-estados.csv' na working directory
 
+<<<<<<< HEAD
 # descomente as duas linhas abaixo, execute-as no R, depois comente novamente
 # antes de rodar o shiny. Em breve: cron jobs pra evitar essa gambiarra?
 
@@ -15,11 +16,19 @@
 
 
 =======
+=======
+# descomente as tres linhas abaixo, execute-as no R, depois comente novamente
+# antes de rodar o shiny. Em breve: cron jobs pra evitar essa gambiarra?
+
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
 setwd("~/Documentos/USP/predict/covid19/shiny/site_final/covid-19")
 #source("merge-data.R")
 #pegaCorona()
 library(sf)
 library(brazilmaps)
+<<<<<<< HEAD
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
+=======
 >>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
 # carrega as dependencias, lê as variáveis e carrega-as para o ambiente
 source("load-data.R")
@@ -27,7 +36,11 @@ source("load-data.R")
 # interface do usuário - shiny
 ui <- fluidPage(
     
+<<<<<<< HEAD
   add_busy_bar(color = "#045a8d", height = "6px"), #barra de loading superior
+=======
+  #add_busy_bar(color = "#045a8d", height = "6px"), #barra de loading superior
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
     navbarPage("PREDICT - Covid-19", id="nav",
                tabPanel("Mapa Interativo",
                         div(class="outer",
@@ -46,12 +59,19 @@ ui <- fluidPage(
                                           
                                           radioButtons("radio", h3("Listar por"),
                                                        choices = list("Cidades" = 1, "Estados" = 0),# "Regiões" = 2),
+<<<<<<< HEAD
                                                        selected = 0),
                                           
                                           selectInput("color", "Variável:", vars, selected = "var_mm_confirmed"),
                                           checkboxInput("log", "Escala log", value = FALSE),
                                           selectInput("palette", "Palheta de Cores:", c("viridis", "Reds", "Blues", "BuGn", "BuPu", "GnBu", "Greens", "Greys",  "Oranges",  "OrRd", "PuBu", "PuBuGn", "PuRd", "Purples", "RdPu", "YlGn", "YlGnBu", "YlOrBr","YlOrRd"), selected = "Reds"),
                                           numericInput("nclass", "Número de classes (legenda):", min=3, max=9, value=5)
+=======
+                                                       selected = 0)#,
+                                          
+                                          #selectInput("color", "Variável:", vars, selected = "last_available_confirmed"),
+                                          #selectInput("size", "Size", vars, selected = "last_available_death_rate")#,
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
                                           
                                           #conditionalPanel("input.color == 'superzip' || input.size == 'superzip'",
                                           # Only prompt for threshold when coloring or sizing by superzip
@@ -69,7 +89,11 @@ ui <- fluidPage(
                         #)
                         
                ),
+<<<<<<< HEAD
                tabPanel("Gráficos por estado",
+=======
+               tabPanel("Gráficos",
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
                     # painel por cidades
                         sidebarLayout(
                             
@@ -93,7 +117,11 @@ ui <- fluidPage(
                               span(tags$i(h6("A notificação dos casos está sujeita a uma variação significativa devido a política de testagem e capacidade das Secretarias Estaduais e Municipais de Saúde.")), style="color:#045a8d"),
                               h3(textOutput("case_count"), align = "right"),
                               h3(textOutput("deaths_count"), align = "right"),
+<<<<<<< HEAD
                               h3(textOutput("letality_co unt"), align = "right"),
+=======
+                              h3(textOutput("letality_count"), align = "right"),
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
                               h3(textOutput("new_cases_count"), align = "right"),
                               h3(textOutput("new_deaths_count"), align = "right"),
                               
@@ -104,9 +132,14 @@ ui <- fluidPage(
                               
                               
                               
+<<<<<<< HEAD
                               
                               h2("Previsão de casos para os próximos 21 dias"),
                               h4("Ajuste ao modelo de Redes Dinâmicas"),
+=======
+                              #h2("Ajuste ao modelo de Gompertz"),
+                              h3("Previsão da média móvel de casos para os próximos 14 dias"),
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
                               #radioButtons("predType", "", vars_plot_mm, selected = "last_available_confirmed"),
                               plotlyOutput(outputId = "predict_cases"),
                               
@@ -115,7 +148,10 @@ ui <- fluidPage(
                               #plotlyOutput(outputId = "mmPlot"),
                               
                               h2("Comparacão 2019-2020 de óbitos notificados em cartório"),
+<<<<<<< HEAD
                               h5("Pode haver atraso de até 60 dias na consolidação dos dados"),
+=======
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
                               plotlyOutput(outputId = "cartMap"),
                               
                               
@@ -130,6 +166,7 @@ ui <- fluidPage(
                         #)
                         
                ),
+<<<<<<< HEAD
                tabPanel("Gráficos por DRS (SP)",
                         # painel por drs
                         sidebarLayout(
@@ -191,6 +228,8 @@ ui <- fluidPage(
                         #)
                         
                ),
+=======
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
                # Explorador
                tabPanel("Tabela",
                         fluidRow(
@@ -201,7 +240,11 @@ ui <- fluidPage(
                                    conditionalPanel("input.states",
                                                     selectInput("cities", "Cidades", c("Todas as cidades"=""), multiple=TRUE)
                                    )
+<<<<<<< HEAD
                             ),
+=======
+                            )#,
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
                             # column(3,
                             #        conditionalPanel("input.states", 
                             #                         selectInput("zipcodes", "Zipcodes", c("All zipcodes"=""), multiple=TRUE)
@@ -222,6 +265,7 @@ ui <- fluidPage(
                ),
                
                tabPanel("Sobre",
+<<<<<<< HEAD
                         
                         titlePanel(h2("Sobre o Predict-Covid19")),
                         mainPanel(
@@ -237,6 +281,13 @@ ui <- fluidPage(
                           tags$li("Yuri Reis")
                         )
                         )
+=======
+                        titlePanel(h2("Sobre o Predict-Covid19")),
+                        mainPanel(
+                        paste("Este projeto visa a análise de dados de COVID-19 por meio de técnicas de visualização de dados e modelos preditivos, para o dimensionamento e prevenção dos impactos da epidemia de COVID-19 e outras síndromes respiratórias agudas graves, utilizando estatística e ciência de dados. Nossa proposta envolve a predição do número de casos e óbitos, a demanda de internações hospitalares de acordo com diferentes intervenções não farmacológicas, o que inclui medidas de distanciamento social, isolamento voluntário, isolamento de sintomáticos, uso de equipamentos de proteção individual (EPIs), monitoramento de contatos próximos ou domiciliares, triagem em serviços de saúde, entre outras.")
+                        )
+                        
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
                         )
                
     ),
@@ -272,11 +323,43 @@ server <- function(input, output, session) {
     })
     
     
+<<<<<<< HEAD
    
     # observer que mantém os circulos e a legenda de acordo com as variaveis escolhidas pelo usr
     observe({
               
         req(input$color)
+=======
+    # anáilise de mortes em cartório
+    output$cartMap <- renderPlotly({
+      
+      covdeaths <- dt %>% filter(state == input$state & place_type == "state") %>% select(date,new_deaths)
+      ex <- cart %>% filter(state == input$state) %>%  select(new_deaths_total_2020,new_deaths_total_2019,date)
+      ex$date <- ex$date %>% as.Date()
+      
+      ex <- left_join(ex,covdeaths, by = c("date" = "date")) 
+      # trocando os NA's por zero
+      ex[is.na(ex)] = 0
+      
+      ex <- tibble("Variação 2019-2020" = ex$new_deaths_total_2020 - ex$new_deaths_total_2019, date = ex$date, "Óbitos de Covid-19" = ex$new_deaths)
+      #ex <- ex %>% mutate(new_deaths = new_deaths_total_2019 + new_deaths)
+      plt <- ex %>% reshape2::melt(id.vars = "date")
+      p <- plt %>% 
+        ggplot( aes(x=date, y=value, fill=variable, text=variable)) +
+        geom_area( ) +
+        scale_fill_viridis(discrete = TRUE) +
+        ggtitle(paste0("Mortes em excesso no estado de ", input$state)) +
+        geom_vline(aes(xintercept = as.Date("2020-03-13")))
+      #theme(legend.position="none")
+      
+      ggplotly(p)
+      
+    })
+    
+    # observer que mantém os circulos e a legenda de acordo com as variaveis escolhidas pelo usr
+    observe({
+      
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
         colorBy <- input$color
         
         if(input$radio == 1){
@@ -308,6 +391,7 @@ server <- function(input, output, session) {
             shp_sf <- left_join(shp_sf,dados, by = c("State" = "city_ibge_code"))
             }
         #browser()
+<<<<<<< HEAD
         colorData <- shp_sf[[colorBy]] 
         
         if(input$log)
@@ -325,10 +409,22 @@ server <- function(input, output, session) {
          #browser()
         leafletProxy("map", data = shp_sf) %>%
           clearShapes() %>% 
+=======
+        #colorData <- zipdata[[colorBy]]
+        #pal <- colorBin("Reds", colorData, 8, pretty = T)
+        #pal <- colorNumeric(palette = "Reds", domain = colorData)
+        pal <- colorNumeric(palette = "Reds", domain = shp_sf$last_available_confirmed_per_100k_inhabitants)
+        
+        #radius <- zipdata[[sizeBy]] / max(zipdata[[sizeBy]]) * 100
+        
+        leafletProxy("map", data = shp_sf) %>%
+          clearGroup("Polygons") %>% 
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
           addPolygons(data = shp_sf,
                       smoothFactor = 0.5,
                       fillOpacity = 0.5,
                       weight = 0.5,
+<<<<<<< HEAD
                       fillColor = ~pal(colorData),
                       opacity = 0.8,
 <<<<<<< HEAD
@@ -344,6 +440,14 @@ server <- function(input, output, session) {
                                       "<b>", nome,"<b><br>",
                                       "Variacao da média móvel de casos: ", scales::percent(var_mm_confirmed, scale = 1),"<b><br>",
                                       "Variacao da média móvel de óbitos: ", scales::percent(var_mm_deaths, scale = 1),"<b><br>",
+=======
+                      color = ~pal(last_available_confirmed_per_100k_inhabitants),
+                      opacity = 0.8,
+                      stroke = FALSE,
+                      highlightOptions = highlightOptions(stroke = 4, weight = 2,color = "black"),
+                      popup = ~paste0(sep = " ",
+                                      "<b>", city," - ", state,"<b><br>",
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
                                       "<b>Casos confirmados: </b>", last_available_confirmed, "<br>",
                                       "<b>Casos por 100k habitantes: </b>", last_available_confirmed_per_100k_inhabitants,tags$br(),
                                       "Novos casos: ", new_confirmed, tags$br(),
@@ -352,12 +456,17 @@ server <- function(input, output, session) {
                                       "Total de Casos Confirmados: ", last_available_confirmed, tags$br(),
                                       "Total de óbitos: ", last_available_deaths, tags$br(),
                                       "Taxa de letalidade: ",last_available_death_rate),
+<<<<<<< HEAD
                       label = ~nome, layerId=~City) %>% 
+=======
+                      label = ~city, layerId=~City) %>% 
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
           #addPolygons(~longitude, ~latitude, layerId=~city_ibge_code,
             #                 stroke=FALSE, fillOpacity=0.3, fillColor=pal(colorData)) %>%
             #addLegend("bottomright", pal=pal, values=colorData, title=colorBy,
             #          layerId="colorLegend")
           addLegend("bottomright",
+<<<<<<< HEAD
                     title = names(colorBy), 
                     pal = pal, 
                     values = colorBy, 
@@ -385,6 +494,35 @@ server <- function(input, output, session) {
     
     
     #observador que mostra a cidade clicada a partir da tabela
+=======
+                    title = "Casos confirmados por<br>100k habitantes", 
+                    pal = pal, 
+                    values = ~last_available_confirmed_per_100k_inhabitants, 
+                    opacity = 0.8, layerId="colorLegend")
+    })
+    
+    # funcao que mostra a cidade clicada
+    showCityPopup <- function(city_ibge_code, lat, lng) {
+        selectedZip <- dados[dados$city_ibge_code == city_ibge_code,]
+        content <- as.character(tagList(
+            tags$h4(HTML(sprintf("%s %s",
+                                 selectedZip$city, selectedZip$state
+            ))),
+            sprintf("Novos casos: %s", selectedZip$new_confirmed), tags$br(),
+            sprintf("Novos óbitos: %s", selectedZip$new_deaths),tags$br(),
+            sprintf("Populacão: %s", as.integer(selectedZip$estimated_population_2019)),tags$br(),
+            sprintf("Total de Casos Confirmados: %s", as.integer(selectedZip$last_available_confirmed)), tags$br(),
+            sprintf("Total de óbitos: %s", as.integer(selectedZip$last_available_deaths)), tags$br(),
+            sprintf("Taxa de letalidade: %s%%", selectedZip$last_available_death_rate)
+        ))
+        leafletProxy("map") %>% addPopups(lng, lat, content, layerId = city_ibge_code)
+        
+    }
+    
+    
+    
+    #observador que mostra a cidade clicada
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
     observe({
         leafletProxy("map") %>% clearPopups()
         event <- input$map_marker_click
@@ -398,6 +536,7 @@ server <- function(input, output, session) {
     })
     
     # sessao de gráficos
+<<<<<<< HEAD
     
     # anáilise de mortes em cartório
     output$cartMap <- renderPlotly({
@@ -427,6 +566,8 @@ server <- function(input, output, session) {
     
     
     
+=======
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
     # label da ultima att
     output$last_update <- renderText({
       
@@ -519,6 +660,7 @@ server <- function(input, output, session) {
     
     # previsoes no plot_ly. Finalmente!
     
+<<<<<<< HEAD
     calcula_pred <- function(fit){
       return (forecast(fit,21, PI = T, level = c(0.95,0.80)))
     }
@@ -686,6 +828,8 @@ server <- function(input, output, session) {
     
     
     
+=======
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
     output$predict_cases <- renderPlotly({
     # tratamento do reactive  
       #req(input$predType)
@@ -717,10 +861,17 @@ server <- function(input, output, session) {
       fit <- nnetar(selectedCity$new_confirmed, p = 7)
       
       # isso aqui demora um bocado.
+<<<<<<< HEAD
       show_modal_spinner(text = "Calculando intervalos de confiança...")# loading bar
       
       # intervalos de confiança para a predição
       pred <- calcula_pred_c(fit)
+=======
+      show_modal_spinner() # loading bar
+      
+      # intervalos de confiança para a predição
+      pred <- forecast(fit,21, PI = T, level = c(0.95,0.80))
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
       
       remove_modal_spinner() # remove a barra de carregamento
       #browser()

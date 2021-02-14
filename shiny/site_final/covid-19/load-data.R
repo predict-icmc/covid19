@@ -1,6 +1,7 @@
 library(shiny)
 library(leaflet)
 library(RColorBrewer)
+<<<<<<< HEAD
 #trocar pelas funcoes
 #library(tidyverse)
 library(magrittr)
@@ -19,12 +20,20 @@ library(brazilmaps)
 library(viridis)
 library(sf)
 library(lubridate)
+=======
+library(tidyverse)
+library(feather)
+library(plotly)
+library(data.table)
+library(minpack.lm)
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
 
 
 # arquivo feather a ser lido. Consulte merge-data.R para saber como gerar novos arquivos
 latlong <- "latlong-covid.feather"
 caso_full <- "full-covid.feather"
 obcartorio <- "ob-cartorio.feather"
+<<<<<<< HEAD
 seade <- "seade-covid.feather"
 
 # Variaveis a serem exibidas
@@ -38,6 +47,18 @@ vars <- c(
   "Novos Casos Confirmados" = "new_confirmed",
   "Novos Óbitos" = "new_deaths",
   "Populacão Estimada 2019" = "estimated_population_2019"
+=======
+
+# Variaveis a serem exibidas
+vars <- c(
+  "Total de Casos Confirmados" = "last_available_confirmed",
+  "Total de Óbitos" = "last_available_deaths",
+  "Letalidade" = "last_available_death_rate",
+  "Populacão Estimada 2019" = "estimated_population_2019",
+  "Novos Casos Confirmados" = "new_confirmed",
+  "Novos Óbitos" = "new_deaths"#,
+  #"Confirmados / 100 mil habitantes" = "last_available_confirmed_per_100k_inhabitants"
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
 )
 
 vars_plot <- c(
@@ -61,6 +82,7 @@ vars_plot_pred <- c(
 # leitura dos dados.
 dados <- read_feather(latlong)
 
+<<<<<<< HEAD
 drs_seade <- read_feather(seade)
 
 cleantable <- dados %>% select(state,city,estimated_population_2019,last_available_confirmed, last_available_deaths, last_available_death_rate,latitude,longitude,city_ibge_code)
@@ -70,3 +92,11 @@ estados <- dados$state %>% unique %>% as.character()
 cart <- read_feather(obcartorio)
 
 
+=======
+estados <- dados$state %>% unique %>% as.character()
+cleantable <- dados %>% select(state,city,estimated_population_2019,last_available_confirmed, last_available_deaths, last_available_death_rate,latitude,longitude,city_ibge_code)
+
+dt <- read_feather(caso_full)
+ 
+cart <- read_feather(obcartorio)
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
