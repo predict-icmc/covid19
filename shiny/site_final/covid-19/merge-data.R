@@ -45,6 +45,24 @@ dados$tempo<- as.numeric(as.Date(dados$date) - min(as.Date(dados$date)))
 dados$date <- as.Date(dados$date)
 
 # acrescentar a media_movel
+
+dados <- dados %>% 
+  arrange(desc(city_ibge_code)) %>% 
+  group_by(city_ibge_code) %>% 
+  mutate(
+                mm7d_confirmed = frollmean(new_confirmed, 7),
+                mm7d_deaths = frollmean(new_deaths, 7)) %>% 
+  ungroup()
+
+dados <- dados %>% 
+  arrange(city_ibge_code) %>% 
+  group_by(city_ibge_code, date) %>% 
+  mutate(
+         var_mm_confirmed = round((mm7d_confirmed/ lag(mm7d_confirmed, n = 2) - 1 ) * 100, 2),
+         var_mm_deaths = round((mm7d_deaths/ lag(mm7d_deaths, n = 2) - 1 ) * 100),2)  %>%
+  ungroup()
+
+
 write_feather(cart,sprintf("ob-cartorio.feather"))
 write_feather(dados,sprintf("full-covid.feather"))
 #drop_upload("full-covid.feather", dtoken = token)
@@ -78,3 +96,32 @@ write_feather(dados,sprintf("latlong-covid.feather"))
 print("Dados baixados e salvos com sucesso.")
 #drop_upload("latlong-covid.feather", dtoken = token)
 }
+
+baixar_seade <- function(){
+  # Lendo a base de dados do SEADE com os casos em SP
+  casos <- read.csv("https://raw.githubusercontent.com/seade-R/dados-covid-sp/master/data/dados_covid_sp.csv", sep= ";")
+  leitos <- read.csv("https://raw.githubusercontent.com/seade-R/dados-covid-sp/master/data/plano_sp_leitos_internacoes_serie_nova_variacao_semanal.csv", sep = ";")
+  
+  # incluindo os codigos das DRS na base de leitos
+  leitos <- leitos %>% mutate(cod_drs = extract_numeric(nome_drs))
+  
+  
+  #ajustando manualmente os codigos das DRS
+  leitos$cod_drs[c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 ,14, 15, 16, 17)] <- c(10, 7, 8, 13, 16, 12, 3, 4, 5, 11, 2, 9, 1, 14, 15, 6, 17)
+  
+  casos_drs <- casos %>% arrange(desc(datahora)) %>% # filter(nome_drs == "Grande São Paulo") %>%
+    group_by(cod_drs, datahora) %>% summarise(total_novos_casos = sum(casos_novos),
+                                              total_novos_obitos = sum(obitos_novos)) %>%
+    mutate(mm7d_casos = frollmean(total_novos_casos, 7),
+           mm7d_obitos = frollmean(total_novos_obitos, 7)) %>% 
+    left_join(leitos, by=c("datahora", "cod_drs"))
+  
+  casos_drs$datahora <- casos_drs$datahora %>% lubridate::as_date()
+  
+  #trocando as virgulas por pontos
+  casos_drs$ocupacao_leitos <- as.numeric(gsub(",", ".", gsub("\\.", "", casos_drs$ocupacao_leitos)))
+  
+  
+  write_feather(casos_drs, sprintf("seade-covid.feather"))  
+}
+

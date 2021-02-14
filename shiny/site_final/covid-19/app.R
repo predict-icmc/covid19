@@ -5,21 +5,21 @@
 # ATENÇÃO: necessário possuir os arquivos 'latitude-longitude-cidades.csv'
 # e 'latitude-longitude-estados.csv' na working directory
 
-# descomente as tres linhas abaixo, execute-as no R, depois comente novamente
+# descomente as duas linhas abaixo, execute-as no R, depois comente novamente
 # antes de rodar o shiny. Em breve: cron jobs pra evitar essa gambiarra?
 
-setwd("~/Documentos/USP/predict/covid19/shiny/site_final/covid-19")
 #source("merge-data.R")
 #pegaCorona()
-library(sf)
-library(brazilmaps)
+#baixar_seade()
+
+
 # carrega as dependencias, lê as variáveis e carrega-as para o ambiente
 source("load-data.R")
 
 # interface do usuário - shiny
 ui <- fluidPage(
     
-  #add_busy_bar(color = "#045a8d", height = "6px"), #barra de loading superior
+  add_busy_bar(color = "#045a8d", height = "6px"), #barra de loading superior
     navbarPage("PREDICT - Covid-19", id="nav",
                tabPanel("Mapa Interativo",
                         div(class="outer",
@@ -40,9 +40,10 @@ ui <- fluidPage(
                                                        choices = list("Cidades" = 1, "Estados" = 0),# "Regiões" = 2),
                                                        selected = 0),
                                           
-                                          selectInput("color", "Variável:", vars, selected = "last_available_confirmed_per_100k_inhabitants"),
-                                          checkboxInput("log", "Escala log", value = FALSE)
-                                          #selectInput("size", "Size", vars, selected = "last_available_death_rate")#,
+                                          selectInput("color", "Variável:", vars, selected = "var_mm_confirmed"),
+                                          checkboxInput("log", "Escala log", value = FALSE),
+                                          selectInput("palette", "Palheta de Cores:", c("viridis", "Reds", "Blues", "BuGn", "BuPu", "GnBu", "Greens", "Greys",  "Oranges",  "OrRd", "PuBu", "PuBuGn", "PuRd", "Purples", "RdPu", "YlGn", "YlGnBu", "YlOrBr","YlOrRd"), selected = "Reds"),
+                                          numericInput("nclass", "Número de classes (legenda):", min=3, max=9, value=5)
                                           
                                           #conditionalPanel("input.color == 'superzip' || input.size == 'superzip'",
                                           # Only prompt for threshold when coloring or sizing by superzip
@@ -60,7 +61,7 @@ ui <- fluidPage(
                         #)
                         
                ),
-               tabPanel("Gráficos",
+               tabPanel("Gráficos por estado",
                     # painel por cidades
                         sidebarLayout(
                             
@@ -84,7 +85,7 @@ ui <- fluidPage(
                               span(tags$i(h6("A notificação dos casos está sujeita a uma variação significativa devido a política de testagem e capacidade das Secretarias Estaduais e Municipais de Saúde.")), style="color:#045a8d"),
                               h3(textOutput("case_count"), align = "right"),
                               h3(textOutput("deaths_count"), align = "right"),
-                              h3(textOutput("letality_count"), align = "right"),
+                              h3(textOutput("letality_co unt"), align = "right"),
                               h3(textOutput("new_cases_count"), align = "right"),
                               h3(textOutput("new_deaths_count"), align = "right"),
                               
@@ -121,6 +122,67 @@ ui <- fluidPage(
                         #)
                         
                ),
+               tabPanel("Gráficos por DRS (SP)",
+                        # painel por drs
+                        sidebarLayout(
+                          
+                          # Sidebar panel for inputs ----
+                          sidebarPanel(position = "left",
+                                       #h4(textOutput("last_update"), align = "left"),
+                                       
+                                       #radioButtons("radio1", h3("Tipo de previsão"),
+                                       #             choices = list("Estadual" = 0),#"Municipal" = 1, "Regional" = 2),
+                                      #              selected = 0),
+                                       
+                                       #Tipo de plot
+                                       
+                                       # Input: estado e cidade ----
+                                       selectInput(inputId = "drs",
+                                                   label = "Escolha uma DRS:",
+                                                   choices = drs_seade$nome_drs %>% levels()),
+                                       #uiOutput(outputId = "choosecity_map",  selected ="São Paulo"),
+                                       
+                                       
+                                       #span(tags$i(h6("A notificação dos casos está sujeita a uma variação significativa devido a política de testagem e capacidade das Secretarias Estaduais e Municipais de Saúde.")), style="color:#045a8d"),
+                                       #h3(textOutput("case_count"), align = "right"),
+                                       #h3(textOutput("deaths_count"), align = "right"),
+                                       #h3(textOutput("letality_count"), align = "right"),
+                                       #h3(textOutput("new_cases_count"), align = "right"),
+                                       #h3(textOutput("new_deaths_count"), align = "right"),
+                                       
+                                       
+                          ),
+                          
+                          mainPanel(
+                            
+                            
+                            
+                            
+                            h2("Previsão de casos para os próximos 21 dias"),
+                            h4("Ajuste ao modelo de Redes Dinâmicas"),
+                            #radioButtons("predType", "", vars_plot_mm, selected = "last_available_confirmed"),
+                            plotlyOutput(outputId = "predict_cases_drs")#,
+                            
+                            #h2("Variacão da média móvel"),
+                            #radioButtons("plotTypeMM", "", vars_plot_mm, selected = "new_confirmed"),
+                            #plotlyOutput(outputId = "mmPlot"),
+                            
+                            #h2("Comparacão 2019-2020 de óbitos notificados em cartório"),
+                            #h5("Pode haver atraso de até 60 dias na consolidação dos dados"),
+                            #plotlyOutput(outputId = "cartMap"),
+                            
+                            
+                            #h2("Acumulado no período"),                              
+                            #radioButtons("plotType", " ", vars, selected = "last_available_confirmed"),
+                            #plotlyOutput(outputId = "distPlot")
+                            
+                            
+                            #plotlyOutput(outputId = "predict_deaths")
+                          )
+                        )
+                        #)
+                        
+               ),
                # Explorador
                tabPanel("Tabela",
                         fluidRow(
@@ -131,7 +193,7 @@ ui <- fluidPage(
                                    conditionalPanel("input.states",
                                                     selectInput("cities", "Cidades", c("Todas as cidades"=""), multiple=TRUE)
                                    )
-                            )#,
+                            ),
                             # column(3,
                             #        conditionalPanel("input.states", 
                             #                         selectInput("zipcodes", "Zipcodes", c("All zipcodes"=""), multiple=TRUE)
@@ -212,8 +274,7 @@ server <- function(input, output, session) {
         if(input$radio == 1){
             zipdata <- dados %>% filter(place_type == "city" )#&& estimated_population_2019 > 200000)
             # pegando as geometrias das cidades
-            #shp <- get_brmap("City") #Chico
-            shp <- get_brmap("City", geo.filter = list(State = 35))
+            shp <- get_brmap("City")
             shp$City <- as.character(shp$City)
             # definindo que o dataframe contém dados geométricos
             shp_sf <- st_as_sf(shp)%>%
@@ -226,8 +287,7 @@ server <- function(input, output, session) {
         else{
             zipdata <- dados %>% filter(place_type == "state")
             # pegando as geometrias dos estados
-            #shp <- get_brmap("State") #Chico
-            shp <- get_brmap("City", geo.filter = list(State = 35))
+            shp <- get_brmap("State")
             shp$City <- as.character(shp$State)
             # definindo que o dataframe contém dados geométricos
             shp_sf <- st_as_sf(shp)%>%
@@ -243,25 +303,32 @@ server <- function(input, output, session) {
         if(input$log)
           colorData <- log10(colorData)
         
-        pal <- colorBin("Reds", colorData, 5, pretty = T)
+        req(input$palette)
+        req(input$nclass)
+        
+        pal <- colorBin(input$palette, colorData, req(input$nclass), pretty = T)
         #pal <- colorNumeric(palette = "Reds", domain = colorData)
         #pal <- colorNumeric(palette = "Reds", domain = shp_sf$last_available_confirmed_per_100k_inhabitants)
         
         #radius <- zipdata[[sizeBy]] / max(zipdata[[sizeBy]]) * 100
         
-         
+         #browser()
         leafletProxy("map", data = shp_sf) %>%
           clearShapes() %>% 
           addPolygons(data = shp_sf,
                       smoothFactor = 0.5,
-                      #fillOpacity = 0.5,
-                      #weight = 0.5,
+                      fillOpacity = 0.5,
+                      weight = 0.5,
                       fillColor = ~pal(colorData),
                       opacity = 0.8,
-                      stroke = FALSE,
-                      highlightOptions = highlightOptions(stroke = 4, weight = 2,color = "black"),
+                      stroke = F,
+                      highlightOptions = highlightOptions(color = "black",
+                                                          weight = 2,
+                                                          bringToFront = TRUE),
                       popup = ~paste0(sep = " ",
                                       "<b>", nome,"<b><br>",
+                                      "Variacao da média móvel de casos: ", scales::percent(var_mm_confirmed, scale = 1),"<b><br>",
+                                      "Variacao da média móvel de óbitos: ", scales::percent(var_mm_deaths, scale = 1),"<b><br>",
                                       "<b>Casos confirmados: </b>", last_available_confirmed, "<br>",
                                       "<b>Casos por 100k habitantes: </b>", last_available_confirmed_per_100k_inhabitants,tags$br(),
                                       "Novos casos: ", new_confirmed, tags$br(),
@@ -276,7 +343,7 @@ server <- function(input, output, session) {
             #addLegend("bottomright", pal=pal, values=colorData, title=colorBy,
             #          layerId="colorLegend")
           addLegend("bottomright",
-                    title = colorBy, 
+                    title = names(colorBy), 
                     pal = pal, 
                     values = colorBy, 
                     opacity = 0.8, layerId="colorLegend")
@@ -443,6 +510,167 @@ server <- function(input, output, session) {
     #deixando essa parte lenta no cache
     calcula_pred_c <- memoise(calcula_pred)
     
+    
+    output$predict_cases_drs <- renderPlotly({
+      # tratamento do reactive  
+      #req(input$predType)
+      #req(input$chooseCity)
+      req(input$drs)
+      
+      codi_drs <- drs_seade %>% filter(nome_drs == input$drs & datahora =="2021-02-13") %>% select(cod_drs) %>% pull
+      
+      sp <- drs_seade %>% filter(cod_drs == codi_drs)
+      
+      
+      fit <- nnetar(sp$total_novos_casos,p=7)
+      fit2 <- nnetar(sp$ocupacao_leitos,p=7)
+      
+      show_modal_spinner(text = "Calculando intervalos de confiança...")
+      
+      pred <- calcula_pred_c(fit)
+      pred2 <- calcula_pred_c(fit2)
+      
+      remove_modal_spinner()
+      
+      trace1 <- list(
+        line = list(
+          color = "rgba(0,0,0,1)", 
+          fillcolor = "rgba(0,0,0,1)"
+        ), 
+        mode = "lines", 
+        name = "Média móvel (7 dias)", 
+        type = "scatter", 
+        x =  sp$datahora,
+        y =  round(sp$mm7d_casos), 
+        xaxis = "x", 
+        yaxis = "y"
+      )
+      trace2 <- list(
+        fill = "toself", 
+        line = list(
+          color = "rgba(242,242,242,1)", 
+          fillcolor = "rgba(242,242,242,1)"
+        ), 
+        mode = "lines", 
+        name = "95% confidence", 
+        type = "scatter", 
+        x = c(min(sp$datahora) - ddays(1) + ddays(time(pred$mean)), rev( min( sp$datahora)  - ddays(1) + ddays( time( pred$mean)))),
+        y = round( c( pred$upper[,1], rev(pred$lower[,1]))),
+        xaxis = "x", 
+        yaxis = "y", 
+        hoveron = "points"
+      )
+      trace3 <- list(
+        fill = "toself", 
+        line = list(
+          color = "rgba(204,204,204,1)", 
+          fillcolor = "rgba(204,204,204,1)"
+        ), 
+        mode = "lines", 
+        name = "80% confidence", 
+        type = "scatter", 
+        x = c(min(sp$datahora) - ddays(1) + ddays(time(pred$mean)), rev( min(sp$datahora)  - ddays(1) + ddays( time( pred$mean)))),
+        y = round( c( pred$upper[,2], rev(pred$lower[,2]))),
+        xaxis = "x", 
+        yaxis = "y", 
+        hoveron = "points"
+      )
+      trace4 <- list(
+        line = list(
+          color = "rgba(0,0,255,1)", 
+          fillcolor = "rgba(0,0,255,1)"
+        ), 
+        mode = "lines", 
+        name = "prediction", 
+        type = "scatter", 
+        x = min(sp$datahora) - ddays(1) + ddays(time(pred$mean)),
+        y = round( pred$mean), 
+        xaxis = "x", 
+        yaxis = "y"
+      )
+      trace5 <- list(
+        line = list(
+          color = "rgba(0,155,155,1)", 
+          fillcolor = "rgba(0,155,155,1)"
+        ), 
+        mode = "lines", 
+        name = "% leitos ocupados", 
+        type = "scatter", 
+        x = sp$datahora,#min(sp$datahora) - ddays(1) + ddays(time(pred$mean)),
+        y = sp$ocupacao_leitos %>% as.numeric(), 
+        xaxis = "x", 
+        yaxis = "y2"
+      )
+      trace6 <- list(
+        fill = "toself",
+        line = list(
+          color = "rgba(004,204,204,1)",
+          fillcolor = "rgba(004,204,204,1)"
+        ),
+        mode = "lines",
+        name = "80% confidence",
+        type = "scatter",
+        x = c(min(sp$datahora) - ddays(1) + ddays(time(pred$mean)), rev( min(sp$datahora)  - ddays(1) + ddays( time( pred$mean)))),
+        y = round( c( pred2$upper[,1], rev(pred2$lower[,1]))),
+        xaxis = "x",
+        yaxis = "y2",
+        hoveron = "points"
+      )
+      trace7 <- list(
+        line = list(
+          color = "rgba(0,0,055,1)", 
+          fillcolor = "rgba(0,0,055,1)"
+        ), 
+        mode = "lines", 
+        name = "previsão de internações", 
+        type = "scatter", 
+        x = min(sp$datahora) - ddays(1) + ddays(time(pred$mean)),
+        y = round( pred2$mean), 
+        xaxis = "x", 
+        yaxis = "y2"
+      )
+      data <- list(trace1, trace2, trace3, trace4, trace5)
+      layout <- list(
+        title = "Forecast from NNAR", 
+        xaxis = list(
+          title = "Date", 
+          domain = range(sp$datahora)
+        ), 
+        yaxis = list(
+          title = "Novos Casos Confirmados (Média Móvel de 7 dias)", 
+          domain = c(0, 1)
+        ),
+        yaxis2 = list(
+          title = "Leitos ocupados", 
+          domain = c(150, 800),
+          overlaying = "y",
+          side = "right"
+        ),
+        margin = list(
+          b = 40, 
+          l = 60, 
+          r = 10, 
+          t = 25
+        )
+      )
+      p <- plot_ly()
+      p <- add_trace(p, line=trace1$line, mode=trace1$mode, name=trace1$name, type=trace1$type, x=trace1$x, y=trace1$y, xaxis=trace1$xaxis, yaxis=trace1$yaxis)
+      p <- add_trace(p, fill=trace2$fill, line=trace2$line, mode=trace2$mode, name=trace2$name, type=trace2$type, x=trace2$x, y=trace2$y, xaxis=trace2$xaxis, yaxis=trace2$yaxis, hoveron=trace2$hoveron)
+      p <- add_trace(p, fill=trace3$fill, line=trace3$line, mode=trace3$mode, name=trace3$name, type=trace3$type, x=trace3$x, y=trace3$y, xaxis=trace3$xaxis, yaxis=trace3$yaxis, hoveron=trace3$hoveron)
+      p <- add_trace(p, line=trace4$line, mode=trace4$mode, name=trace4$name, type=trace4$type, x=trace4$x, y=trace4$y, xaxis=trace4$xaxis, yaxis=trace4$yaxis)
+      p <- add_bars(p, y = sp$total_novos_casos, x = sp$datahora, name = "Novos casos diários")
+      p <- add_trace(p, line=trace5$line, mode=trace5$mode, name=trace5$name, type=trace5$type, x=trace5$x, y=trace5$y, xaxis=trace5$xaxis, yaxis=trace5$yaxis)
+      p <- add_trace(p, fill=trace6$fill, line=trace6$line, mode=trace6$mode, name=trace6$name, type=trace6$type, x=trace6$x, y=trace6$y, xaxis=trace6$xaxis, yaxis=trace6$yaxis, hoveron=trace6$hoveron)
+      p <- add_trace(p, line=trace7$line, mode=trace7$mode, name=trace7$name, type=trace7$type, x=trace7$x, y=trace7$y, xaxis=trace7$xaxis, yaxis=trace7$yaxis)
+      p <- add_segments(p, yaxis = "y2", name = "100% de ocupação", x = as_date("2020-12-31"), xend = as_date("2021-03-15"), y = 100, yend = 100)
+      p <- layout(p, title=layout$title, xaxis=layout$xaxis, yaxis=layout$yaxis, yaxis2=layout$yaxis2, margin=layout$margin)
+    
+      
+      
+    })
+    
+    
+    
     output$predict_cases <- renderPlotly({
     # tratamento do reactive  
       #req(input$predType)
@@ -474,7 +702,7 @@ server <- function(input, output, session) {
       fit <- nnetar(selectedCity$new_confirmed, p = 7)
       
       # isso aqui demora um bocado.
-      show_modal_spinner() # loading bar
+      show_modal_spinner(text = "Calculando intervalos de confiança...")# loading bar
       
       # intervalos de confiança para a predição
       pred <- calcula_pred_c(fit)
