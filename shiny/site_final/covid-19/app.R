@@ -8,11 +8,19 @@
 # descomente as duas linhas abaixo, execute-as no R, depois comente novamente
 # antes de rodar o shiny. Em breve: cron jobs pra evitar essa gambiarra?
 
+<<<<<<< HEAD
 #source("merge-data.R")
 #pegaCorona()
 #baixar_seade()
 
 
+=======
+setwd("~/Documentos/USP/predict/covid19/shiny/site_final/covid-19")
+#source("merge-data.R")
+#pegaCorona()
+library(sf)
+library(brazilmaps)
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
 # carrega as dependencias, lê as variáveis e carrega-as para o ambiente
 source("load-data.R")
 
@@ -274,7 +282,8 @@ server <- function(input, output, session) {
         if(input$radio == 1){
             zipdata <- dados %>% filter(place_type == "city" )#&& estimated_population_2019 > 200000)
             # pegando as geometrias das cidades
-            shp <- get_brmap("City")
+            #shp <- get_brmap("City") #Chico
+            shp <- get_brmap("City", geo.filter = list(State = 35))
             shp$City <- as.character(shp$City)
             # definindo que o dataframe contém dados geométricos
             shp_sf <- st_as_sf(shp)%>%
@@ -287,7 +296,8 @@ server <- function(input, output, session) {
         else{
             zipdata <- dados %>% filter(place_type == "state")
             # pegando as geometrias dos estados
-            shp <- get_brmap("State")
+            #shp <- get_brmap("State") #Chico
+            shp <- get_brmap("City", geo.filter = list(State = 35))
             shp$City <- as.character(shp$State)
             # definindo que o dataframe contém dados geométricos
             shp_sf <- st_as_sf(shp)%>%
@@ -321,10 +331,15 @@ server <- function(input, output, session) {
                       weight = 0.5,
                       fillColor = ~pal(colorData),
                       opacity = 0.8,
+<<<<<<< HEAD
                       stroke = F,
                       highlightOptions = highlightOptions(color = "black",
                                                           weight = 2,
                                                           bringToFront = TRUE),
+=======
+                      stroke = FALSE,
+                      highlightOptions = highlightOptions(stroke = 4, weight = 2,color = "black"),
+>>>>>>> b1dbcdbdd162b67ff70d8af49986dda7862d67f2
                       popup = ~paste0(sep = " ",
                                       "<b>", nome,"<b><br>",
                                       "Variacao da média móvel de casos: ", scales::percent(var_mm_confirmed, scale = 1),"<b><br>",
