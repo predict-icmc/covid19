@@ -60,8 +60,8 @@ dados <- dados %>%
   arrange(desc(city_ibge_code)) %>% 
   group_by(city_ibge_code) %>% 
   mutate(
-         var_mm_confirmed = (mm7d_confirmed/ lag(mm7d_confirmed) - 1 ) * 100,
-         var_mm_deaths = (mm7d_deaths/ lag(mm7d_deaths) - 1 ) * 100)  %>%
+         var_mm_confirmed = replace_na((mm7d_confirmed/ lag(mm7d_confirmed) - 1 ) * 100,0),
+         var_mm_deaths = replace_na((mm7d_deaths/ lag(mm7d_deaths) - 1 ) * 100),0)  %>%
   ungroup()
 
 write_feather(cart,sprintf("ob-cartorio.feather"))

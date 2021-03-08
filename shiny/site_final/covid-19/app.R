@@ -1,18 +1,25 @@
+#'@PREDICT-ICMC app.R
 
-# pegando novos dados
-# utilize a pegaCorona() para baixar os dados atualizados do brasil.io
-# essa função baixa os dados mais recentes e salva na working dir
-# ATENÇÃO: necessário possuir os arquivos 'latitude-longitude-cidades.csv'
+#'*pegando novos dados*
+#'utilize a função [pegaCorona()] para baixar os dados atualizados do brasil.io
+# ela irá baixar os dados mais recentes e salvar na working dir
+
+#'@ATENÇÃO: necessário possuir os arquivos 'latitude-longitude-cidades.csv'
 # e 'latitude-longitude-estados.csv' na working directory
 
+#'@ATENÇÃO: a função pegaCorona referenciada via arquivo [merge-data.R], apesar do
+#' mesmo nome, é ligeiramente diferente da disponibilizada no pacote [gather.covid::].
 
-# descomente as tres linhas abaixo, execute-as no R, depois comente novamente
-# antes de rodar o shiny. Em breve: cron jobs pra evitar essa gambiarra?
+#'[ descomente as tres linhas abaixo, execute-as no R, depois comente novamente
+#'[ antes de rodar o shiny. Em breve: cron jobs pra evitar essa gambiarra?
 
+# source("merge-data.R") 
+# pegaCorona() 
+# baixar_seade()
 
-#source("merge-data.R")
-#pegaCorona()
-#baixar_seade()
+#'*enviar site (necessario ter token do shinyapps na maquina)*
+#rsconnect::deployApp(account = "predict-icmc")
+
 
 # carrega as dependencias, lê as variáveis e carrega-as para o ambiente
 source("load-data.R")
@@ -20,9 +27,9 @@ source("load-data.R")
 # interface do usuário - shiny
 ui <- fluidPage(
     
-
+  # barra de carregamento superior
   add_busy_bar(color = "#045a8d", height = "6px"), #barra de loading superior
-
+    # tab do mapa interativo
     navbarPage("PREDICT - Covid-19", id="nav",
                tabPanel("Mapa Interativo",
                         div(class="outer",
@@ -31,8 +38,9 @@ ui <- fluidPage(
                                 includeCSS("styles.css"),
                                 includeScript("gomap.js")
                             ),
-                            
+                            # plot do mapa
                             leafletOutput("map", width="100%", height="100%"),
+                            # painel flutuante
                             absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
                                           draggable = TRUE, top = 60, left = "auto", right = 20, bottom = "auto",
                                           width = 330, height = "auto",
@@ -58,14 +66,14 @@ ui <- fluidPage(
                             #plotOutput("histCentile", height = 200),
                             #plotOutput("scatterCollegeIncome", height = 250)
                         ),
-                        
+                        # logo inferior
                         tags$div(id="cite",tags$img(src = "logo-predict-small1.jpg"))
                         
                         #         'Desenvolvido pelo grupo', tags$em('PREDICT-Covid19'),
                         #)
                         
                ),
-
+              # tab graficos por estado
                tabPanel("Gráficos por estado",
                     # painel por cidades
                         sidebarLayout(
@@ -86,7 +94,7 @@ ui <- fluidPage(
                                         choices = estados,  selected = "SP"),
                               #uiOutput(outputId = "choosecity_map",  selected ="São Paulo"),
                             
-                              
+                              # labels com informacoes
                               span(tags$i(h6("A notificação dos casos está sujeita a uma variação significativa devido a política de testagem e capacidade das Secretarias Estaduais e Municipais de Saúde.")), style="color:#045a8d"),
                               h3(textOutput("case_count"), align = "right"),
                               h3(textOutput("deaths_count"), align = "right"),
@@ -99,9 +107,7 @@ ui <- fluidPage(
                             
                             mainPanel(
                               
-                              
-                            
-                              
+                              # graficos do plotly por estado
                               h2("Previsão de casos para os próximos 21 dias"),
                               h4("Ajuste ao modelo de Redes Dinâmicas"),
                               #radioButtons("predType", "" , vars_plot_mm, selected = "last_available_confirmed"),
@@ -135,7 +141,7 @@ ui <- fluidPage(
                           
                           # Sidebar panel for inputs ----
                           sidebarPanel(position = "left",
-                                       #h4(textOutput("last_update"), align = "left"),
+                                       h4(textOutput("last_update_drs"), align = "left"),
                                        
                                        #radioButtons("radio1", h3("Tipo de previsão"),
                                        #             choices = list("Estadual" = 0),#"Municipal" = 1, "Regional" = 2),
@@ -150,7 +156,7 @@ ui <- fluidPage(
                                        #uiOutput(outputId = "choosecity_map",  selected ="São Paulo"),
                                        
                                        
-                                       #span(tags$i(h6("A notificação dos casos está sujeita a uma variação significativa devido a política de testagem e capacidade das Secretarias Estaduais e Municipais de Saúde.")), style="color:#045a8d"),
+                                       span(tags$i(h6("A notificação dos casos está sujeita a uma variação significativa devido a política de testagem e capacidade das Secretarias Estaduais e Municipais de Saúde.")), style="color:#045a8d")#,
                                        #h3(textOutput("case_count"), align = "right"),
                                        #h3(textOutput("deaths_count"), align = "right"),
                                        #h3(textOutput("letality_count"), align = "right"),
@@ -168,7 +174,7 @@ ui <- fluidPage(
                             h2("Previsão de casos para os próximos 21 dias"),
                             h4("Ajuste ao modelo de Redes Dinâmicas"),
                             #radioButtons("predType", "", vars_plot_mm, selected = "last_available_confirmed"),
-                            plotlyOutput(outputId = "predict_cases_drs")#,
+                            plotlyOutput(outputId = "predict_cases_drs"),
                             
                             #h2("Variacão da média móvel"),
                             #radioButtons("plotTypeMM", "", vars_plot_mm, selected = "new_confirmed"),
@@ -180,7 +186,7 @@ ui <- fluidPage(
                             
                             
                             #h2("Acumulado no período"),                              
-                            #radioButtons("plotType", " ", vars, selected = "last_available_confirmed"),
+                            #radioButtons("plotType", " ", names(drs_seade)),
                             #plotlyOutput(outputId = "distPlot")
                             
                             
@@ -224,6 +230,7 @@ ui <- fluidPage(
                         
                         titlePanel(h2("Sobre o Predict-Covid19")),
                         mainPanel(
+                          tags$div(id="cite",tags$img(src = "logo-predict-small1.jpg")),
                         paste("Este projeto visa a análise de dados de COVID-19 por meio de técnicas de visualização de dados e modelos preditivos, para o dimensionamento e prevenção dos impactos da epidemia de COVID-19 e outras síndromes respiratórias agudas graves, utilizando estatística e ciência de dados. Nossa proposta envolve a predição do número de casos e óbitos, a demanda de internações hospitalares de acordo com diferentes intervenções não farmacológicas, o que inclui medidas de distanciamento social, isolamento voluntário, isolamento de sintomáticos, uso de equipamentos de proteção individual (EPIs), monitoramento de contatos próximos ou domiciliares, triagem em serviços de saúde, entre outras."),
                         
                         h2("Equipe"),
@@ -242,7 +249,7 @@ ui <- fluidPage(
     conditionalPanel("false", icon("crosshair"))    
 )
 
-
+# server side da aplicacao
 server <- function(input, output, session) {
     #observador que lansa as cidades a serem escolhidas
     output$choosecity <- renderUI({
@@ -271,7 +278,7 @@ server <- function(input, output, session) {
     })
     
    
-    # observer que mantém os circulos e a legenda de acordo com as variaveis escolhidas pelo usr
+    # observer que mantém o mapa e a legenda de acordo com as variaveis escolhidas pelo usr
     observe({
               
         req(input$color)
@@ -309,6 +316,7 @@ server <- function(input, output, session) {
         #browser()
         colorData <- shp_sf[[colorBy]] 
         
+        # escala log se solicitado
         if(input$log)
           colorData <- log10(colorData)
         
@@ -398,6 +406,8 @@ server <- function(input, output, session) {
     # anáilise de mortes em cartório
     output$cartMap <- renderPlotly({
       
+      req(input$state)
+      
       covdeaths <- dt %>% filter(state == input$state & place_type == "state") %>% select(date,new_deaths)
       ex <- cart %>% filter(state == input$state) %>%  select(new_deaths_total_2020,new_deaths_total_2019,date)
       ex$date <- ex$date %>% as.Date()
@@ -425,12 +435,20 @@ server <- function(input, output, session) {
   
     # label da ultima att
     output$last_update <- renderText({
-      
+      req(input$state)
     
       data <- dt %>% filter(state == input$state &
                                        place_type == "state"& is_last == "True")
       paste0("Atualizado em ",as.Date(data$date))
     })
+    # label da ultima att DRS
+    output$last_update_drs <- renderText({
+      req(input$drs)
+      
+      data <- drs_seade %>% filter(nome_drs == input$drs) %>% arrange(datahora) %>% last()
+      paste0("Atualizado em ",as.Date(data$datahora))
+    })
+    
     
     
     # label do numero de casos
@@ -534,12 +552,20 @@ server <- function(input, output, session) {
       
       
       fit <- nnetar(sp$total_novos_casos,p=7)
-      fit2 <- nnetar(sp$ocupacao_leitos,p=7)
+      #fit2 <- nnetar(x = sp$datahora, y = sp$ocupacao_leitos,p=7)
       
       show_modal_spinner(text = "Calculando intervalos de confiança...")
       
       pred <- calcula_pred_c(fit)
-      pred2 <- calcula_pred_c(fit2)
+      #nova previsao: x = %ucup*new_cases/pred(new_cases)
+      
+      const <- sp %>% last() %>% select(ocupacao_leitos, mm7d_casos)
+      const$ocupacao_leitos <- as.numeric(const$ocupacao_leitos)
+      const$total_novos_casos <- as.numeric(const$mm7d_casos)
+    
+      # constante de predicao de leitos de acordo com media movel de casos
+      pred2 <- const$ocupacao_leitos * const$total_novos_casos
+      #pred2 <- calcula_pred_c(fit2)
       
       remove_modal_spinner()
       
@@ -549,7 +575,7 @@ server <- function(input, output, session) {
           fillcolor = "rgba(0,0,0,1)"
         ), 
         mode = "lines", 
-        name = "Média móvel (7 dias)", 
+        name = "Média móvel de casos confirmados (7 dias)", 
         type = "scatter", 
         x =  sp$datahora,
         y =  round(sp$mm7d_casos), 
@@ -563,7 +589,7 @@ server <- function(input, output, session) {
           fillcolor = "rgba(242,242,242,1)"
         ), 
         mode = "lines", 
-        name = "95% confidence", 
+        name = "Previsão de novos casos diários (95% de confiança)", 
         type = "scatter", 
         x = c(min(sp$datahora) - ddays(1) + ddays(time(pred$mean)), rev( min( sp$datahora)  - ddays(1) + ddays( time( pred$mean)))),
         y = round( c( pred$upper[,1], rev(pred$lower[,1]))),
@@ -578,7 +604,7 @@ server <- function(input, output, session) {
           fillcolor = "rgba(204,204,204,1)"
         ), 
         mode = "lines", 
-        name = "80% confidence", 
+        name = "Previsão de novos casos diários (80% de confiança)", 
         type = "scatter", 
         x = c(min(sp$datahora) - ddays(1) + ddays(time(pred$mean)), rev( min(sp$datahora)  - ddays(1) + ddays( time( pred$mean)))),
         y = round( c( pred$upper[,2], rev(pred$lower[,2]))),
@@ -588,11 +614,12 @@ server <- function(input, output, session) {
       )
       trace4 <- list(
         line = list(
+          dash=3,
           color = "rgba(0,0,255,1)", 
           fillcolor = "rgba(0,0,255,1)"
         ), 
         mode = "lines", 
-        name = "prediction", 
+        name = "previsão de novos casos diários", 
         type = "scatter", 
         x = min(sp$datahora) - ddays(1) + ddays(time(pred$mean)),
         y = round( pred$mean), 
@@ -615,46 +642,79 @@ server <- function(input, output, session) {
       trace6 <- list(
         fill = "toself",
         line = list(
-          color = "rgba(004,204,204,1)",
-          fillcolor = "rgba(004,204,204,1)"
+          color = "rgba(242,42,42,1)", 
+          fillcolor = "rgba(242,42,42,1)"
         ),
         mode = "lines",
-        name = "80% confidence",
+        name = "Previsão de internações (80% de confiança)",
         type = "scatter",
-        x = c(min(sp$datahora) - ddays(1) + ddays(time(pred$mean)), rev( min(sp$datahora)  - ddays(1) + ddays( time( pred$mean)))),
-        y = round( c( pred2$upper[,1], rev(pred2$lower[,1]))),
+        x = c(min(sp$datahora) - ddays(1) + ddays(time(pred$mean)), rev( min( sp$datahora)  - ddays(1) + ddays( time( pred$mean)))),
+        y = pred2/round( c( frollmean(pred$upper[,2],7, fill = const$mm7d_casos), rev( frollmean( pred$lower[,2], 7, fill = const$mm7d_casos) ) )),
         xaxis = "x",
         yaxis = "y2",
         hoveron = "points"
       )
+      # trace8 <- list(
+      #   fill = "toself", 
+      #   line = list(
+      #     color = "rgba(242,42,42,1)", 
+      #     fillcolor = "rgba(242,42,42,1)"
+      #   ), 
+      #   mode = "lines", 
+      #   name = "Previsão de internacões (80% de confiança)", 
+      #   type = "scatter", 
+      #   x = c(min(sp$datahora) - ddays(1) + ddays(time(pred$mean)), rev( min(sp$datahora)  - ddays(1) + ddays( time( pred$mean)))),
+      #   y = pred2/round( c( frollmean(pred$upper[,2],7), rev(frollmean(pred$lower[,2],7) ))),
+      #   xaxis = "x", 
+      #   yaxis = "y2", 
+      #   hoveron = "points"
+      # )
+      # # 
+      # trace6 <- list(
+      #   fill = "toself",
+      #   line = list(
+      #     color = "rgba(4,204,204,1)",
+      #     fillcolor = "rgba(4,204,204,1)"
+      #   ),
+      #   mode = "lines",
+      #   name = "Previsão de internações (80% confiança)",
+      #   type = "scatter",
+      #   x = c(min(sp$datahora) - ddays(1) + ddays(time(pred$mean)), rev( min(sp$datahora)  - ddays(1) + ddays( time( pred$mean)))),
+      #   y = round( c( pred2$upper[,1], rev(pred2$lower[,1]))),
+      #   xaxis = "x",
+      #   yaxis = "y2",
+      #   hoveron = "points"
+      # )
       trace7 <- list(
         line = list(
-          color = "rgba(0,0,055,1)", 
-          fillcolor = "rgba(0,0,055,1)"
+          dash=3,
+          color = "rgba(0,100,55,1)", 
+          fillcolor = "rgba(0,100,55,1)"
         ), 
         mode = "lines", 
         name = "previsão de internações", 
         type = "scatter", 
         x = min(sp$datahora) - ddays(1) + ddays(time(pred$mean)),
-        y = round( pred2$mean), 
+        y = pred2 / frollmean( pred$mean, 7, fill = const$mm7d_casos), 
         xaxis = "x", 
         yaxis = "y2"
       )
-      data <- list(trace1, trace2, trace3, trace4, trace5)
+      data <- list(trace1, trace2, trace3, trace4, trace5, trace7)
       layout <- list(
-        title = "Forecast from NNAR", 
+        title = paste0(input$drs), 
         xaxis = list(
-          title = "Date", 
+          #title = "Data", 
           domain = range(sp$datahora)
         ), 
         yaxis = list(
-          title = "Novos Casos Confirmados (Média Móvel de 7 dias)", 
+          title = "Novos Casos Confirmados", 
           domain = c(0, 1)
         ),
         yaxis2 = list(
-          title = "Leitos ocupados", 
-          domain = c(150, 800),
+          title = "% Leitos ocupados", 
+          domain = c(0, 1),
           overlaying = "y",
+          automargin = TRUE,
           side = "right"
         ),
         margin = list(
@@ -671,10 +731,12 @@ server <- function(input, output, session) {
       p <- add_trace(p, line=trace4$line, mode=trace4$mode, name=trace4$name, type=trace4$type, x=trace4$x, y=trace4$y, xaxis=trace4$xaxis, yaxis=trace4$yaxis)
       p <- add_bars(p, y = sp$total_novos_casos, x = sp$datahora, name = "Novos casos diários")
       p <- add_trace(p, line=trace5$line, mode=trace5$mode, name=trace5$name, type=trace5$type, x=trace5$x, y=trace5$y, xaxis=trace5$xaxis, yaxis=trace5$yaxis)
-      p <- add_trace(p, fill=trace6$fill, line=trace6$line, mode=trace6$mode, name=trace6$name, type=trace6$type, x=trace6$x, y=trace6$y, xaxis=trace6$xaxis, yaxis=trace6$yaxis, hoveron=trace6$hoveron)
+      #p <- add_trace(p, fill=trace6$fill, line=trace6$line, mode=trace6$mode, name=trace6$name, type=trace6$type, x=trace6$x, y=trace6$y, xaxis=trace6$xaxis, yaxis=trace6$yaxis, hoveron=trace6$hoveron)
+      #p <- add_trace(p, fill=trace6$fill, line=trace6$line, mode=trace6$mode, name=trace6$name, type=trace6$type, x=trace6$x, y=trace6$y, xaxis=trace6$xaxis, yaxis=trace6$yaxis, hoveron=trace6$hoveron)
       p <- add_trace(p, line=trace7$line, mode=trace7$mode, name=trace7$name, type=trace7$type, x=trace7$x, y=trace7$y, xaxis=trace7$xaxis, yaxis=trace7$yaxis)
-      p <- add_segments(p, yaxis = "y2", name = "100% de ocupação", x = as_date("2020-12-31"), xend = as_date("2021-03-15"), y = 100, yend = 100)
-      p <- layout(p, title=layout$title, xaxis=layout$xaxis, yaxis=layout$yaxis, yaxis2=layout$yaxis2, margin=layout$margin)
+      #p <- add_trace(p, fill=trace8$fill, line=trace8$line, mode=trace8$mode, name=trace8$name, type=trace8$type, x=trace8$x, y=trace8$y, xaxis=trace8$xaxis, yaxis=trace8$yaxis, hoveron=trace8$hoveron)
+      p <- add_segments(p, yaxis = "y2", name = "100% de ocupação", x = as_date("2020-12-31"), xend = as_date("2021-04-15"), y = 100, yend = 100, line=list(dash=6))
+      p <- layout(p, title=layout$title, xaxis=layout$xaxis, yaxis=layout$yaxis, yaxis2=layout$yaxis2, margin=layout$margin,legend = list(orientation = 'h'))
     
       
       
@@ -938,3 +1000,4 @@ shinyApp(ui = ui, server = server)
 
 # enviar site
 #rsconnect::deployApp(account = "predict-icmc")
+
