@@ -1,0 +1,350 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={Compara-modelos},
+  pdfauthor={predict-icmc},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+
+\title{Compara-modelos}
+\author{predict-icmc}
+\date{14/12/2020}
+
+\begin{document}
+\maketitle
+
+\hypertarget{lendo-os-dados}{%
+\subsection{Lendo os dados}\label{lendo-os-dados}}
+
+Para obter os dados mais atuais do Covid-19 do site \texttt{brasil.io}
+utilizamos o pacote \texttt{Gather-Covid}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Para instalar utilize o comando}
+\CommentTok{#remotes::install_github("predict-icmc/gather-data")}
+
+\KeywordTok{library}\NormalTok{(tidyverse)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## -- Attaching packages --------------------------------------- tidyverse 1.3.0 --
+\end{verbatim}
+
+\begin{verbatim}
+## v ggplot2 3.3.3     v purrr   0.3.4
+## v tibble  3.0.4     v dplyr   1.0.2
+## v tidyr   1.1.2     v stringr 1.4.0
+## v readr   1.4.0     v forcats 0.5.0
+\end{verbatim}
+
+\begin{verbatim}
+## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(gather.covid)}
+
+\NormalTok{df <-}\StringTok{ }\KeywordTok{pegaCorona}\NormalTok{(}\DataTypeTok{tipo =} \StringTok{"caso_full"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "Fazendo o download...."
+## [1] "Download concluido. Transformando os dados"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{selectedCity <-}\StringTok{ }\NormalTok{df }\OperatorTok{%>%}\StringTok{ }\KeywordTok{filter}\NormalTok{(city }\OperatorTok{==}\StringTok{ "São Paulo"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#---- testes Fla}
+\KeywordTok{library}\NormalTok{(forecast)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Registered S3 method overwritten by 'quantmod':
+##   method            from
+##   as.zoo.data.frame zoo
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#--- Conjuntos Treino e Teste}
+\NormalTok{treino<-selectedCity}\OperatorTok{$}\NormalTok{new_confirmed[}\DecValTok{1}\OperatorTok{:}\DecValTok{276}\NormalTok{]}
+\NormalTok{test<-selectedCity}\OperatorTok{$}\NormalTok{new_confirmed[}\DecValTok{277}\OperatorTok{:}\DecValTok{290}\NormalTok{]}
+
+\NormalTok{modelo <-}\StringTok{ }\KeywordTok{auto.arima}\NormalTok{(treino,}
+                    \DataTypeTok{trace =}\NormalTok{ T, }\CommentTok{# habilitando o display para acompanhar}
+                    \DataTypeTok{stepwise =}\NormalTok{ F, }\CommentTok{# permitindo uma busca mais profunda}
+                    \DataTypeTok{approximation =}\NormalTok{ F)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  ARIMA(0,1,0)                    : 4731.681
+##  ARIMA(0,1,0) with drift         : 4733.707
+##  ARIMA(0,1,1)                    : 4618.448
+##  ARIMA(0,1,1) with drift         : 4619.882
+##  ARIMA(0,1,2)                    : 4611.802
+##  ARIMA(0,1,2) with drift         : 4613.271
+##  ARIMA(0,1,3)                    : 4613.606
+##  ARIMA(0,1,3) with drift         : 4615.082
+##  ARIMA(0,1,4)                    : 4609.186
+##  ARIMA(0,1,4) with drift         : 4610.645
+##  ARIMA(0,1,5)                    : 4598.89
+##  ARIMA(0,1,5) with drift         : 4600.411
+##  ARIMA(1,1,0)                    : 4696.302
+##  ARIMA(1,1,0) with drift         : 4698.335
+##  ARIMA(1,1,1)                    : 4612.822
+##  ARIMA(1,1,1) with drift         : 4614.294
+##  ARIMA(1,1,2)                    : 4613.766
+##  ARIMA(1,1,2) with drift         : 4615.247
+##  ARIMA(1,1,3)                    : Inf
+##  ARIMA(1,1,3) with drift         : Inf
+##  ARIMA(1,1,4)                    : 4598.219
+##  ARIMA(1,1,4) with drift         : 4599.89
+##  ARIMA(2,1,0)                    : 4682.025
+##  ARIMA(2,1,0) with drift         : 4684.066
+##  ARIMA(2,1,1)                    : 4612.394
+##  ARIMA(2,1,1) with drift         : 4613.864
+##  ARIMA(2,1,2)                    : 4594.84
+##  ARIMA(2,1,2) with drift         : 4596.459
+##  ARIMA(2,1,3)                    : 4596.13
+##  ARIMA(2,1,3) with drift         : 4597.729
+##  ARIMA(3,1,0)                    : 4675.687
+##  ARIMA(3,1,0) with drift         : 4677.738
+##  ARIMA(3,1,1)                    : 4608.242
+##  ARIMA(3,1,1) with drift         : 4609.702
+##  ARIMA(3,1,2)                    : 4595.862
+##  ARIMA(3,1,2) with drift         : 4597.453
+##  ARIMA(4,1,0)                    : 4655.934
+##  ARIMA(4,1,0) with drift         : 4657.99
+##  ARIMA(4,1,1)                    : 4594.808
+##  ARIMA(4,1,1) with drift         : 4596.264
+##  ARIMA(5,1,0)                    : 4623.99
+##  ARIMA(5,1,0) with drift         : 4626.004
+## 
+## 
+## 
+##  Best model: ARIMA(4,1,1)
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{print}\NormalTok{(modelo) }\CommentTok{# exibindo os parametros do modelo}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Series: treino 
+## ARIMA(4,1,1) 
+## 
+## Coefficients:
+##          ar1      ar2      ar3      ar4      ma1
+##       0.0676  -0.1325  -0.1520  -0.2506  -0.8416
+## s.e.  0.0648   0.0603   0.0597   0.0617   0.0353
+## 
+## sigma^2 estimated as 1021197:  log likelihood=-2291.25
+## AIC=4594.49   AICc=4594.81   BIC=4616.2
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{## avaliando os resíduos}
+\KeywordTok{checkresiduals}\NormalTok{(modelo) }
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{compara-modelos_files/figure-latex/unnamed-chunk-2-1.pdf}
+
+\begin{verbatim}
+## 
+##  Ljung-Box test
+## 
+## data:  Residuals from ARIMA(4,1,1)
+## Q* = 14.389, df = 5, p-value = 0.01332
+## 
+## Model df: 5.   Total lags used: 10
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{shapiro.test}\NormalTok{(modelo}\OperatorTok{$}\NormalTok{residuals)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Shapiro-Wilk normality test
+## 
+## data:  modelo$residuals
+## W = 0.89759, p-value = 9.983e-13
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{var}\NormalTok{(modelo}\OperatorTok{$}\NormalTok{residuals) }\CommentTok{# variancia alta  }
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 1000408
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{mean}\NormalTok{(modelo}\OperatorTok{$}\NormalTok{residuals)}\CommentTok{# }
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 47.04737
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# com isso pode-se concluir que não foi criado um bom modelo de previsão }
+
+\NormalTok{previsao <-}\StringTok{ }\KeywordTok{forecast}\NormalTok{(modelo, }\DataTypeTok{h =} \DecValTok{14}\NormalTok{) }\CommentTok{#duas semanas}
+\KeywordTok{print}\NormalTok{(previsao)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##     Point Forecast        Lo 80    Hi 80     Lo 95    Hi 95
+## 277       1490.840  195.7773968 2785.903 -489.7874 3471.468
+## 278       1228.733  -98.9967493 2556.464 -801.8547 3259.322
+## 279       1102.609 -226.1923667 2431.410 -929.6172 3134.835
+## 280       1440.230  111.1581705 2769.302 -592.4099 3472.870
+## 281       1449.218  108.9714951 2789.464 -600.5121 3498.948
+## 282       1489.931  144.7073090 2835.154 -567.4110 3547.273
+## 283       1471.789  107.6137297 2835.963 -614.5368 3558.114
+## 284       1379.196   -5.6101055 2764.001 -738.6819 3497.073
+## 285       1366.903  -34.7960814 2768.601 -776.8106 3510.616
+## 286       1370.898  -36.3532371 2778.149 -781.3069 3523.102
+## 287       1391.415  -18.8338859 2801.663 -765.3743 3548.203
+## 288       1417.343    3.3963124 2831.290 -745.1019 3579.788
+## 289       1418.850   -0.7505563 2838.450 -752.2415 3589.941
+## 290       1411.396  -16.6340360 2839.426 -772.5876 3595.380
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{autoplot}\NormalTok{(previsao)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{compara-modelos_files/figure-latex/unnamed-chunk-2-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#- comparar a previsao com o conj teste}
+\end{Highlighting}
+\end{Shaded}
+
+\end{document}
