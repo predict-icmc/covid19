@@ -8,11 +8,10 @@ correla<-demografico %>%
   select(IDH,espvida,gini,t_agua,rdpc,densidade) %>% 
   na.omit()
 
-<<<<<<< HEAD
+
 correla<-data.frame(lapply(correla,as.numeric))
-=======
 correla<-data.frame(lapply(correla,as.double))
->>>>>>> dcd3babcea66fbd32e479aa26fad42ef5800cc2e
+
 
 corrplot(cor(as.matrix(correla),method = "spearman"))
 
@@ -26,8 +25,11 @@ correla<-data.frame(lapply(correla,as.double))
 
 corrplot.mixed(cor(as.matrix(correla),method = "spearman"), lower.col = "black", number.cex = .9, 
                bg = "gray")
-corrRect(c(6,4))
 
+
+
+
+corrRect(c(6,4))
 ############################################################
 ##Grafico correlação com cidades com mais de  200.000 habitantes 
 correla2<-last.data %>% 
@@ -55,12 +57,29 @@ correla3<-correla3 %>%
 names(correla3)[names(correla3) == "last_available_confirmed_per_100k_inhabitants"] <- "ultimo_caso_100k"
 correla3<-data.frame(lapply(correla3,as.double))
 
-<<<<<<< HEAD
+
 corrplot.mixed(cor(as.matrix(correla3),method = "spearman"))
 cov(correla3)
-=======
+
 corrplot.mixed(cor(as.matrix(correla3),method = "spearman"), lower.col = "black", number.cex = .9, 
                bg = "gray")
 corrRect(c(6,4))
->>>>>>> dcd3babcea66fbd32e479aa26fad42ef5800cc2e
+
 ################################################################
+
+#############GRAFICO DE CORRELAÇÂO 1 TODAS as cidades #########
+
+names(correla)<- c("IDH","Esperança de Vida","Gini","Tratatamento de Agua","Renda per capita","Densidade","Ultimos Casos por 100k","Casos Confirmados","Taxa de mortes confirmadas","Mortes confirmadas")
+cor1<-cor(as.matrix(correla),method = "spearman")
+corrplot.mixed(cor1, lower.col = "black", number.cex = .7, tl.pos = "lt")
+
+names(correla2)<- c("IDH","Esperança de Vida","Gini","Tratatamento de Agua","Renda per capita","Densidade","Ultimos Casos por 100k","Casos Confirmados","Taxa de mortes confirmadas","Mortes confirmadas")
+cor2<-cor(as.matrix(correla2),method = "spearman")
+corrplot.mixed(cor2, lower.col = "black", number.cex = .7, tl.pos = "lt")
+
+names(correla3)<- c("IDH","Esperança de Vida","Gini","Tratatamento de Agua","Renda per capita","Densidade","Ultimos Casos por 100k","Casos Confirmados","Taxa de mortes confirmadas","Mortes confirmadas")
+cor3<-cor(as.matrix(correla3),method = "spearman")
+corrplot.mixed(cor3, lower.col = "black", number.cex = .7, tl.pos = "lt")
+
+
+
