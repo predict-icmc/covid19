@@ -1,0 +1,87 @@
+---
+title: "PREDICT-ICMC"
+subtitle: "Apresentação do projeto"
+author: 
+institute: "Universidade de São Paulo"
+date: "27.03.2021"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+    includes:
+      after_body: insert-logo.html
+---
+
+# Algumas cenas de hoje...
+
+- Apresentação do projeto
+  - Como o PREDICT-ICMC surgiu?
+  - O que fazemos? 
+  - Qual a utilidade do que fazemos?
+
+- Introdução ao tópico
+  - O que é modelagem?
+  - O problema de regressão
+  
+- Algumas aplicações
+ - Prevendo o "achatamento da curva"
+ - Segunda onda e a busca de um novo modelo 
+ - Agregando a ocupação de leitos à de casos
+ 
+- Como tornar-se membro
+
+- Outras dúvidas?
+
+
+---
+## Como o projeto surgiu?
+
+
+---
+
+## O que fazemos? 
+
+
+---
+
+## Qual a utilidade do que fazemos?
+
+
+---
+# Modelagem
+
+```{r}
+library(tidyverse)
+library(e1071)
+
+
+plot(sigmoid(seq(from = 0, to = 1, by= 0.1)))
+
+plot(sigmoid(seq(from = 0, to = 10, by= 0.1)))
+```
+
+
+---
+````{css, echo = F}
+.bg_karl {
+  position: relative;
+  z-index: 1;
+}
+
+.bg_karl::before {    
+      content: "";
+      background-image: url('https://github.com/predict-icmc/covid19/raw/master/shiny/site_final/covid-19/www/logo-predict.jpg');
+      background-size: cover;
+      position: absolute;
+      top: 0px;
+      right: 0px;
+      bottom: 0px;
+      left: 0px;
+      opacity: 0.5;
+      z-index: -1;
+}
+````
+

@@ -30,8 +30,8 @@ seade <- "seade-covid.feather"
 
 # Variaveis a serem exibidas
 vars <- c(
-  "Variacao da média móvel de casos" = "var_mm_confirmed",
-  "Variacao da média móvel de óbitos" = "var_mm_deaths",
+  "Variação da média móvel de casos" = "var_mm_confirmed",
+  "Variação da média móvel de óbitos" = "var_mm_deaths",
   "Confirmados / 100 mil habitantes" = "last_available_confirmed_per_100k_inhabitants",
   "Total de Casos Confirmados" = "last_available_confirmed",
   "Total de Óbitos" = "last_available_deaths",
@@ -42,6 +42,8 @@ vars <- c(
 )
 
 vars_plot <- c(
+  "Novos Casos Confirmados" = "new_confirmed",
+  "Novos Óbitos" = "new_deaths",
   "Total de Casos Confirmados" = "last_available_confirmed",
   "Total de Óbitos" = "last_available_deaths",
   "Letalidade" = "last_available_death_rate",

@@ -24,7 +24,8 @@ library(data.table)
 downCorona <- function(file_url) {
   con <- gzcon(url(file_url))
   txt <- readLines(con)
-  return(read.csv(textConnection(txt)))
+ 
+  read.csv(textConnection(txt))
 }
 
 # funcao que pega o arquivo de casos do brasil.io, faz um pequeno tratamento e envia para o dropbox os arquivos "latlong-covid.feather" e "full-covid.feather"
@@ -32,76 +33,79 @@ downCorona <- function(file_url) {
 
 
 pegaCorona <- function(baixar = TRUE){
-  
+
   if(baixar){
     print("Fazendo o download....")
     dados <- downCorona("https://data.brasil.io/dataset/covid19/caso_full.csv.gz")
     cart <- downCorona("https://data.brasil.io/dataset/covid19/obito_cartorio.csv.gz")
   }
-  # caso já tenha o arquivo na pasta
+    # caso já tenha o arquivo na pasta
   else
-    dados<-read.csv(file = "caso_full.csv",header=TRUE)
+    dados<-data.table::fread(file = "caso_full.csv",header=TRUE)
   
   print("Download concluido. Transformando os dados")
-  dados$tempo<- as.numeric(as.Date(dados$date) - min(as.Date(dados$date)))
-  dados$date <- as.Date(dados$date)
+dados$tempo<- as.numeric(as.Date(dados$date) - min(as.Date(dados$date)))
+dados$date <- as.Date(dados$date)
+
+# acrescentar a media_movel
+
+dados <- dados %>% 
+  arrange(desc(city_ibge_code)) %>% 
+  group_by(city_ibge_code) %>% 
+  mutate(
+                mm7d_confirmed = frollmean(new_confirmed, 7),
+                mm7d_deaths = frollmean(new_deaths, 7)) %>% 
+  ungroup()
+
+dados <- dados %>% 
+  #arrange(desc(city_ibge_code)) %>% 
+  arrange(date) %>% 
+  group_by(city_ibge_code) %>% 
+  mutate(
+         var_mm_confirmed = replace_na((mm7d_confirmed/ lag(mm7d_confirmed,2) - 1 ) * 100,0),
+         var_mm_deaths = replace_na((mm7d_deaths/ lag(mm7d_deaths,2) - 1 ) * 100),0)  %>%
+  ungroup()
+
+write_feather(cart,sprintf("ob-cartorio.feather"))
+write_feather(dados,sprintf("full-covid.feather"))
+#drop_upload("full-covid.feather", dtoken = token)
+
+
+# acrescentando latitude e longitude nos ultimos casos
+
+latlong_cidade<-data.table::fread('latitude-longitude-cidades.csv', sep=';', header=TRUE)
+latlong_cidade$city <-latlong_cidade$municipio
+latlong_cidade$state <-latlong_cidade$uf
+
+latlong_estado<-data.table::fread('latitude-longitude-estados.csv', sep=';', header=TRUE)
+latlong_estado$state <-latlong_estado$uf
+latlong_estado$place_type='state'
+
+dados <- dados %>% filter(is_last == "True")
+
+dados2 <- merge(dados,latlong_cidade,by=c('state','city'), all.x=TRUE, all.y=FALSE)
+dados <- merge(dados2,latlong_estado,by=c('state','place_type'), all.x=TRUE, all.y=FALSE)
+
+dados <-dados %>%
+  mutate(latitude = ifelse(place_type=='city', latitude.x, latitude.y),
+         longitude = ifelse(place_type=='city',longitude.x, longitude.y))
   
-  # acrescentar a media_movel
-  
-  dados <- dados %>% 
-    arrange(desc(city_ibge_code)) %>% 
-    group_by(city_ibge_code) %>% 
-    mutate(
-      mm7d_confirmed = frollmean(new_confirmed, 7),
-      mm7d_deaths = frollmean(new_deaths, 7)) %>% 
-    ungroup()
-  
-  dados <- dados %>% 
-    arrange(desc(city_ibge_code)) %>% 
-    group_by(city_ibge_code) %>% 
-    mutate(
-      var_mm_confirmed = replace_na((mm7d_confirmed/ lag(mm7d_confirmed) - 1 ) * 100,0),
-      var_mm_deaths = replace_na((mm7d_deaths/ lag(mm7d_deaths) - 1 ) * 100),0)  %>%
-    ungroup()
-  
-  write_feather(cart,sprintf("ob-cartorio.feather"))
-  write_feather(dados,sprintf("full-covid.feather"))
-  #drop_upload("full-covid.feather", dtoken = token)
-  
-  
-  # acrescentando latitude e longitude nos ultimos casos
-  
-  latlong_cidade<-read.csv('latitude-longitude-cidades.csv', sep=';', header=TRUE)
-  latlong_cidade$city <-latlong_cidade$municipio
-  latlong_cidade$state <-latlong_cidade$uf
-  
-  latlong_estado<-read.csv('latitude-longitude-estados.csv', sep=';', header=TRUE)
-  latlong_estado$state <-latlong_estado$uf
-  latlong_estado$place_type='state'
-  
-  dados <- dados %>% filter(is_last == "True")
-  
-  dados2 <- merge(dados,latlong_cidade,by=c('state','city'), all.x=TRUE, all.y=FALSE)
-  dados <- merge(dados2,latlong_estado,by=c('state','place_type'), all.x=TRUE, all.y=FALSE)
-  
-  dados <-dados %>%
-    mutate(latitude = ifelse(place_type=='city', latitude.x, latitude.y),
-           longitude = ifelse(place_type=='city',longitude.x, longitude.y))
-  
-  dados <-select(dados, -c('uf.x','uf.y','latitude.x','longitude.x','latitude.y','longitude.y'))
-  
-  dados <- dados %>% drop_na(latitude,longitude)
-  
-  write_feather(dados,sprintf("latlong-covid.feather"))
-  
-  print("Dados baixados e salvos com sucesso.")
-  #drop_upload("latlong-covid.feather", dtoken = token)
+dados <-select(dados, -c('uf.x','uf.y','latitude.x','longitude.x','latitude.y','longitude.y'))
+
+dados <- dados %>% drop_na(latitude,longitude)
+
+#write_feather(dados,sprintf("latlong-covid.feather"))
+data.table::fwrite(dados,sprintf("latlong-covid.csv"))
+
+
+print("Dados baixados e salvos com sucesso.")
+#drop_upload("latlong-covid.feather", dtoken = token)
 }
 
 baixar_seade <- function(){
   # Lendo a base de dados do SEADE com os casos em SP
-  casos <- read.csv("https://raw.githubusercontent.com/seade-R/dados-covid-sp/master/data/dados_covid_sp.csv", sep= ";")
-  leitos <- read.csv("https://raw.githubusercontent.com/seade-R/dados-covid-sp/master/data/plano_sp_leitos_internacoes_serie_nova_variacao_semanal.csv", sep = ";")
+  casos <- data.table::fread("https://raw.githubusercontent.com/seade-R/dados-covid-sp/master/data/dados_covid_sp.csv", sep= ";")
+  leitos <- data.table::fread("https://raw.githubusercontent.com/seade-R/dados-covid-sp/master/data/plano_sp_leitos_internacoes_serie_nova_variacao_semanal.csv", sep = ";")
   
   # incluindo os codigos das DRS na base de leitos
   leitos <- leitos %>% mutate(cod_drs = extract_numeric(nome_drs))

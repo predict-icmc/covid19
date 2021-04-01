@@ -5,6 +5,6 @@ account: predict-icmc
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2664899
-bundleId: 4223263
+bundleId: 4422045
 url: https://predict-icmc.shinyapps.io/covid-19/
-when: 1613351416.48829
+when: 1617310317.17806
