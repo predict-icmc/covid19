@@ -102,8 +102,8 @@ ui <- fluidPage(
                        choices = list("ARIMA" = 0, "NNAR" = 1), 
                        selected = 0
           ),
-          numericInput("minScore", "I.C. Mínimo", min=60, max=99, value=80),
-          numericInput("maxScore", "I.C. Máximo", min=60, max=99, value=95),
+          numericInput("minScore", "I.C. Mínimo (%)", min=60, max=99, value=80),
+          numericInput("maxScore", "I.C. Máximo (%)", min=60, max=99.9, value=95),
              
 
           # actionButton(
@@ -457,7 +457,7 @@ server <- function(input, output, session) {
   forecast_c <- memoise(forecast)
   
   # objeto reativo que armazena o modelo utilizado
-  dfit <- reactiveValues(data = NULL)
+  dfit <- reactiveValues(data = NULL, xreg = NULL)
   
   # recebe um modelo e calcula a previsao com a confiança estipulada
   calcula_pred <- reactive({
@@ -465,8 +465,9 @@ server <- function(input, output, session) {
     upr <- input$minScore
     rng <- input$pred_rng
     fit <- dfit$data
+    xreg <- dfit$xreg
                     
-    forecast_c(fit, 7 * rng, PI = T, level = c(lwr/100, upr/100))
+    forecast_c(fit, 7 * rng, PI = T, level = c(lwr/100, upr/100), xreg = xreg$mean)
   })
   
   output$pred_hdr <- renderText({
@@ -638,7 +639,8 @@ server <- function(input, output, session) {
 
   # previsao por estado e municipio
   output$predict_cases <- renderPlotly({
-
+    show_modal_spinner(text = "Calculando previsão...") # loading bar
+    
     # cidade estado regiao ou br
     if (input$radio1 == 1) {
       req(input$chooseCity)
@@ -676,15 +678,22 @@ server <- function(input, output, session) {
         lbl <- "óbitos"
       }
       # tipo de modelagem a ser adotado
-      if(input$radio3 == 1) # redes neurais
-        dfit$data <- nnetar(mdlvar, p = 7)
-      
-      else{ # arima
+      if(input$radio3 == 1){ # redes neurais
+        rng <- input$pred_rng
         ts_mdl <- xts::xts(x = mdlvar, order.by = selectedCity$date, frequency = 7) 
-        dfit$data <- auto.arima(ts_mdl, approximation=FALSE)
+        xreg = auto.arima(ts_mdl, approximation=FALSE)
+        dfit$data <- nnetar(ts_mdl, p = 7, xreg = xreg$fitted)
+        dfit$xreg <- forecast(xreg, 7 * rng)
+      }
+      else{ # arima
+        rng <- input$pred_rng
+        ts_mdl <- xts::xts(x = mdlvar, order.by = selectedCity$date, frequency = 7)
+        xreg <- nnetar(ts_mdl, p = 7) 
+        dfit$data <- auto.arima(ts_mdl, approximation=FALSE, xreg = xreg$fitted)
+        dfit$xreg <- forecast(xreg, 7 * rng)
       }
       
-      show_modal_spinner(text = "Calculando previsão...") # loading bar
+      
       # intervalos de confiança para a predição
       pred <- calcula_pred()
       
