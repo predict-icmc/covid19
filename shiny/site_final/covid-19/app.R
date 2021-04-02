@@ -78,7 +78,7 @@ ui <- fluidPage(
     ),
     # tab graficos por estado
     tabPanel(
-      "Gráficos por estado ou município",
+      "Modelagem preditiva",
       # painel por cidades
       sidebarLayout(
 
@@ -87,16 +87,12 @@ ui <- fluidPage(
           position = "left",
           h4(textOutput("last_update"), align = "left"),
           radioButtons("radio1", h3("Tipo de previsão"),
-            choices = list("Estadual" = 0, "Municipal" = 1), # "Regional" = 2),
+            choices = list("Municipal" = 1, "Estadual" = 0, "Regional" = 2, "Federal" = 3),
             selected = 0
           ),
           # Input: estado e cidade ----
-          selectInput(
-            inputId = "state",
-            label = "Escolha um Estado:",
-            choices = estados, selected = "SP"
-          ),
-          uiOutput(outputId = "choosecity_map"), # ,  selected ="São Paulo"),
+          uiOutput(outputId = "state"),
+          uiOutput(outputId = "choosecity"), # ,  selected ="São Paulo"),
           radioButtons("radio2",h3("Variável") ,
                        choices = list("Novos Casos" = 1, "Novos Óbitos" = 0), 
                        selected = 1
@@ -115,11 +111,12 @@ ui <- fluidPage(
           #   label ="Gerar previsão"),
           # # labels com informacoes
 
-          h3(textOutput("case_count"), align = "right"),
-          h3(textOutput("deaths_count"), align = "right"),
-          h3(textOutput("letality_count"), align = "right"),
-          h3(textOutput("new_cases_count"), align = "right"),
-          h3(textOutput("new_deaths_count"), align = "right"),
+          # h3(textOutput("case_count"), align = "right"),
+          # h3(textOutput("deaths_count"), align = "right"),
+          # h3(textOutput("letality_count"), align = "right"),
+          # h3(textOutput("new_cases_count"), align = "right"),
+          # h3(textOutput("new_deaths_count"), align = "right"),
+          span(tags$i(h5("Dados retirados do portal brasil.io")), style = "color:#045a8d"),
           span(tags$i(h6("A notificação dos casos está sujeita a uma variação significativa devido a política de testagem e capacidade das Secretarias Estaduais e Municipais de Saúde.")), style = "color:#045a8d"),
         ),
         mainPanel(
@@ -134,10 +131,10 @@ ui <- fluidPage(
           # radioButtons("plotTypeMM", "", vars_plot_mm, selected = "new_confirmed"),
           # plotlyOutput(outputId = "mmPlot"),
 
-          h2("Comparacão 2019-2020 de óbitos notificados em cartório"),
-          h5("Pode haver atraso na consolidação dos dados"),
-          plotlyOutput(outputId = "cartMap"),
-          #h2("Acumulado no período"),
+          # h2("Comparacão 2019-2020 de óbitos notificados em cartório"),
+          # h5("Pode haver atraso na consolidação dos dados"),
+          # plotlyOutput(outputId = "cartMap"),
+          # #h2("Acumulado no período"),
           #radioButtons("plotType", " ", vars_plot, selected = "last_available_confirmed"),
           #plotlyOutput(outputId = "distPlot")
 
@@ -174,15 +171,15 @@ ui <- fluidPage(
           #              choices = list("Novos Casos" = 1, "Novos Óbitos" = 0), 
           #              selected = 1
           # ),
-          numericInput("pred_rng", "Intervalo de predição (semanas)", min=1, max=10, value=3),
+          # numericInput("pred_rng", "Intervalo de predição (semanas)", min=1, max=10, value=3),
           # radioButtons("radio3",h3("Modelo") ,
           #              choices = list("ARIMA" = 0, "NNAR" = 1), 
           #              selected = 0
-          # ),
-          numericInput("minScore", "I.C. Mínimo", min=60, max=99, value=80),
-          numericInput("maxScore", "I.C. Máximo", min=60, max=99, value=95),
+          # # ),
+          # numericInput("minScore", "I.C. Mínimo", min=60, max=99, value=80),
+          # numericInput("maxScore", "I.C. Máximo", min=60, max=99, value=95),
           
-        
+          span(tags$i(h5("Dados retirados do SEADE")), style = "color:#045a8d"),        
           span(tags$i(h6("A notificação dos casos está sujeita a uma variação significativa devido a política de testagem e capacidade das Secretarias Estaduais e Municipais de Saúde.")), style = "color:#045a8d") # ,
           # h3(textOutput("case_count"), align = "right"),
           # h3(textOutput("deaths_count"), align = "right"),
@@ -267,24 +264,28 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   # observador que lansa as cidades a serem escolhidas
   output$choosecity <- renderUI({
-    if (input$radio == 1) {
-      cities <- dt %>%
-        filter(state == input$state & place_type == "city") %>%
-        select(city) %>%
-        unique()
-      selectInput("chooseCity", "Escolha a Cidade", cities)
-    }
-  })
-  # copia do observador que lansa as cidades a serem escolidas nos graficos
-  output$choosecity_map <- renderUI({
     if (input$radio1 == 1) {
+      req(input$state)
       cities <- dt %>%
         filter(state == input$state & place_type == "city") %>%
+        arrange(city) %>% 
         select(city) %>%
         unique()
       selectInput("chooseCity", "Escolha a Cidade", cities)
     }
   })
+  output$state <- renderUI({
+    if (input$radio1 %in% c(0,1)) {
+      selectInput("state",label = "Escolha um Estado:",
+                  choices = estados, selected = "SP")
+    }
+    else if (input$radio1 == 2) {
+      selectInput("region",label = "Escolha uma Região:",
+                  choices = regioes)
+    }
+    else if (input$radio1 == 3) return(NULL)
+  })
+  
 
   ## Interactive Map ###########################################
 
@@ -303,7 +304,7 @@ server <- function(input, output, session) {
     colorBy <- input$color
 
     if (input$radio == 1) {
-      zipdata <- dados %>% filter(place_type == "city") # && estimated_population_2019 > 200000)
+      zipdata <- dados %>% filter(place_type == "city" && estimated_population_2019 > 100000)
       # pegando as geometrias das cidades
       shp <- get_brmap("City")
 
@@ -479,8 +480,6 @@ server <- function(input, output, session) {
   # previsao por DRS
   output$predict_cases_drs <- renderPlotly({
     # tratamento do reactive
-    # req(input$predType)
-    # req(input$chooseCity)
     req(input$drs)
 
     codi_drs <- drs_seade %>%
@@ -496,6 +495,11 @@ server <- function(input, output, session) {
 
     show_modal_spinner(text = "Calculando previsão...")
 
+    
+    req(input$maxScore)
+    req(input$minScore)
+    req(input$pred_rng)
+    
     pred <- calcula_pred()
     # constante de previsao = % ocupaçao * new_cases / pred(new_cases)
 
@@ -634,25 +638,29 @@ server <- function(input, output, session) {
 
   # previsao por estado e municipio
   output$predict_cases <- renderPlotly({
-    # tratamento do reactive
-    # req(input$predType)
-    # req(input$chooseCity)
 
-    # input$submit_state
-    req(input$state)
-
-
-    # cidade ou estado
+    # cidade estado regiao ou br
     if (input$radio1 == 1) {
+      req(input$chooseCity)
       selectedCity <- dt %>% filter(state == input$state &
         city == input$chooseCity &
         place_type == "city")
       title_g <- paste0(input$chooseCity, " - ", input$state)
     }
-    else {
+    else if (input$radio1 == 0) { #estado
+      req(input$state)
       selectedCity <- dt %>% filter(state == input$state &
         place_type == "state")
       title_g <- paste0("Estado de ", input$state)
+    }
+    else if (input$radio1 == 2) { #regiao
+      req(input$region)
+      selectedCity <- dados_regioes %>% filter(regiao == input$region)
+      title_g <- paste0("Região ",input$region)
+    }
+    else if (input$radio1 == 3) { #brasil todo
+      selectedCity <- dados_regioes %>% filter(regiao == "BRASIL")
+      title_g <- paste0("Brasil")
     }
     
       
@@ -718,7 +726,7 @@ server <- function(input, output, session) {
           fillcolor = "rgba(204,204,204,1)"
         ),
         mode = "lines",
-        name = paste0("Previsão de novos ", lbl,"diários (",input$minScore,"% de confiança)"),
+        name = paste0("Previsão de novos ", lbl," diários (",input$minScore,"% de confiança)"),
         type = "scatter",
         x = c(min(selectedCity$date) - ddays(1) + ddays(time(pred$mean)), rev(min(selectedCity$date) - ddays(1) + ddays(time(pred$mean)))),
         y = round(c(pred$upper[, 2], rev(pred$lower[, 2]))),

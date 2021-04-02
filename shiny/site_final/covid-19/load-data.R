@@ -1,8 +1,12 @@
+#' @PREDICT-ICMC load-data.R
+
+#'* carrega o ambiente de execução do shiny*
+
 library(shiny)
 library(leaflet)
 library(RColorBrewer)
-#trocar pelas funcoes
-#library(tidyverse)
+# trocar pelas funcoes
+# library(tidyverse)
 library(magrittr)
 library(dplyr)
 library(ggplot2)
@@ -10,9 +14,9 @@ library(memoise)
 library(feather)
 library(plotly)
 library(data.table)
-#library(minpack.lm)
+# library(minpack.lm)
 library(forecast)
-#remotes::install_github("predict-icmc/gather-data")
+# remotes::install_github("predict-icmc/gather-data")
 library(gather.covid)
 library(shinybusy)
 library(brazilmaps)
@@ -25,7 +29,7 @@ library(lubridate)
 latlong <- "latlong-covid.feather"
 caso_full <- "full-covid.feather"
 obcartorio <- "ob-cartorio.feather"
-
+caso_regioes <- "dados-regiao.feather"
 seade <- "seade-covid.feather"
 
 # Variaveis a serem exibidas
@@ -63,14 +67,14 @@ vars_plot_pred <- c(
 
 # leitura dos dados.
 dados <- read_feather(latlong)
-
+dados_regioes <- read_feather(caso_regioes)
 drs_seade <- read_feather(seade)
 
-cleantable <- dados %>% select(state,city,estimated_population_2019,last_available_confirmed, last_available_deaths, last_available_death_rate,latitude,longitude,city_ibge_code)
+cleantable <- dados %>% select(state, city, estimated_population_2019, last_available_confirmed, last_available_deaths, last_available_death_rate, latitude, longitude, city_ibge_code)
 
-dt <- read_feather(caso_full)# %>% filter(estimated_population_2019 > 200000)
-estados <- dados$state %>% unique %>% as.character() 
+dt <- read_feather(caso_full) # %>% filter(estimated_population_2019 > 200000)
+estados <- dados$state %>%
+  unique() %>%
+  as.character()
+regioes <- c("CENTRO-OESTE", "NORDESTE", "NORTE", "SUDESTE", "SUL")
 cart <- read_feather(obcartorio)
-
-
-
