@@ -50,8 +50,8 @@ pegaCorona <- function(baixar = TRUE) {
       mm7d_deaths = frollmean(new_deaths, 7)
     ) %>%
     mutate(
-      var_mm_confirmed = replace_na((mm7d_confirmed / lag(mm7d_confirmed, 2) - 1) * 100, 0),
-      var_mm_deaths = replace_na((mm7d_deaths / lag(mm7d_deaths, 2) - 1) * 100), 0
+      var_mm_confirmed = replace_na((mm7d_confirmed / lag(mm7d_confirmed, 14) - 1) * 100, 0),
+      var_mm_deaths = replace_na((mm7d_deaths / lag(mm7d_deaths, 14) - 1) * 100), 0
     ) %>%
     ungroup()
 

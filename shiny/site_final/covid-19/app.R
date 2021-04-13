@@ -123,7 +123,7 @@ ui <- fluidPage(
 
           # graficos do plotly por estado
           h2(textOutput('pred_hdr')),
-          #h4("Ajuste ao modelo de Redes Dinâmicas"),
+          h4(textOutput("title")),
           # radioButtons("predType", "" , vars_plot_mm, selected = "last_available_confirmed"),
           plotlyOutput(outputId = "predict_cases"),
 
@@ -457,7 +457,7 @@ server <- function(input, output, session) {
   forecast_c <- memoise(forecast)
   
   # objeto reativo que armazena o modelo utilizado
-  dfit <- reactiveValues(data = NULL, xreg = NULL)
+  dfit <- reactiveValues(data = NULL, xreg = NULL, title = NULL)
   
   # recebe um modelo e calcula a previsao com a confiança estipulada
   calcula_pred <- reactive({
@@ -465,9 +465,16 @@ server <- function(input, output, session) {
     upr <- input$minScore
     rng <- input$pred_rng
     fit <- dfit$data
-    xreg <- dfit$xreg
+    #xreg <- dfit$xreg
                     
-    forecast_c(fit, 7 * rng, PI = T, level = c(lwr/100, upr/100), xreg = xreg$mean)
+    f <- forecast_c(fit, 7 * rng, PI = T, level = c(lwr/100, upr/100))#, xreg = xreg$mean)
+    tmp <- autoplot(f)
+    dfit$title <- tmp$labels$title
+    f
+  })
+  
+  output$title <- renderText({
+    print(dfit$title)
   })
   
   output$pred_hdr <- renderText({
@@ -681,16 +688,16 @@ server <- function(input, output, session) {
       if(input$radio3 == 1){ # redes neurais
         rng <- input$pred_rng
         ts_mdl <- xts::xts(x = mdlvar, order.by = selectedCity$date, frequency = 7) 
-        xreg = auto.arima(ts_mdl, approximation=FALSE)
-        dfit$data <- nnetar(ts_mdl, p = 7, xreg = xreg$fitted)
-        dfit$xreg <- forecast(xreg, 7 * rng)
+        #xreg = auto.arima(ts_mdl, approximation=FALSE)
+        dfit$data <- nnetar(ts_mdl, p = 7)#, xreg = xreg$fitted)
+        #dfit$xreg <- forecast(xreg, 7 * rng)
       }
       else{ # arima
         rng <- input$pred_rng
         ts_mdl <- xts::xts(x = mdlvar, order.by = selectedCity$date, frequency = 7)
-        xreg <- nnetar(ts_mdl, p = 7) 
-        dfit$data <- auto.arima(ts_mdl, approximation=FALSE, xreg = xreg$fitted)
-        dfit$xreg <- forecast(xreg, 7 * rng)
+        #xreg <- nnetar(ts_mdl, p = 7) 
+        dfit$data <- auto.arima(ts_mdl, approximation=FALSE)#, xreg = xreg$fitted)
+        #dfit$xreg <- forecast(xreg, 7 * rng)
       }
       
       
