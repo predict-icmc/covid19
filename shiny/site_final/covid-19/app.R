@@ -102,6 +102,7 @@ ui <- fluidPage(
                        choices = list("ARIMA" = 0, "NNAR" = 1), 
                        selected = 0
           ),
+          checkboxInput("usemm", "Modelar com a média móvel", value = FALSE),
           numericInput("minScore", "I.C. Mínimo (%)", min=60, max=99, value=80),
           numericInput("maxScore", "I.C. Máximo (%)", min=60, max=99.9, value=95),
              
@@ -676,12 +677,23 @@ server <- function(input, output, session) {
       if (input$radio2 == 1){ #casos
       # media movel
         mm <- selectedCity$mm7d_confirmed
-        mdlvar <- selectedCity$new_confirmed
+        lin <- selectedCity$new_confirmed
+  
+        if (input$usemm == 1) 
+          mdlvar <- selectedCity$mm7d_confirmed
+  
+        else mdlvar <- selectedCity$new_confirmed
+        
         lbl <- "casos"
       }
       else{ # ou obitos
         mm <- selectedCity$mm7d_deaths
-        mdlvar <- selectedCity$new_deaths
+        lin <- selectedCity$new_deaths
+        
+        if (input$usemm == 1) 
+          mdlvar <- selectedCity$mm7d_deaths
+        else  mdlvar <- selectedCity$new_deaths
+        
         lbl <- "óbitos"
       }
       # tipo de modelagem a ser adotado
@@ -789,7 +801,7 @@ server <- function(input, output, session) {
       p <- add_trace(p, line = trace4$line, mode = trace4$mode, name = trace4$name, type = trace4$type, x = trace4$x, y = trace4$y, xaxis = trace4$xaxis, yaxis = trace4$yaxis)
       p %>% add_bars(x = ~date, y = ~ mdlvar)
       p <- layout(p, title = layout$title, xaxis = layout$xaxis, yaxis = layout$yaxis, margin = layout$margin, legend = list(orientation = "h"))
-      p %>% add_bars(y = mdlvar, x = selectedCity$date, name = paste0("Novos ",lbl," diários"))    
+      p %>% add_bars(y = lin, x = selectedCity$date, name = paste0("Novos ",lbl," diários"))    
         
 
   })
