@@ -15,6 +15,9 @@
 #'* enviar site (necessario ter token do shinyapps na maquina)*
 # rsconnect::deployApp(account = "predict-icmc")
 
+# source("update-and-deploy.R")
+
+
 #'* carregando as dependencias no ambiente* 
 #' para informacoes sobre as dependências necessárias, consulte o script abaixo
 source("load-data.R")
