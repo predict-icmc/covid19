@@ -7,7 +7,7 @@ url <- "https://raw.githubusercontent.com/seade-R/dados-covid-sp/master/data/cas
 temp <- tempfile()
 download.file(url,temp)
 
-comorb <- readr::read_csv2(unz(temp,"casos_obitos_doencas_preexistentes.csv"))
+comorb <- readr::read_csv2(unz(temp,"casos_obitos_doencas_preexistentes.csv"), na = c("IGNORADO", "INDEFINIDO")) %>% sample_n(10e5)
 #mort <- comorb %>% filter(obito == 1)
 
 fit <- glm(obito  ~ idade + cs_sexo + asma + cardiopatia + diabetes +
@@ -17,3 +17,6 @@ fit <- glm(obito  ~ idade + cs_sexo + asma + cardiopatia + diabetes +
     outros_fatores_de_risco + pneumopatia +
     puerpera                + sindrome_de_down,
     family = binomial(link=logit), data = comorb)
+
+
+comorb <- read.csv("comorbidades.csv")

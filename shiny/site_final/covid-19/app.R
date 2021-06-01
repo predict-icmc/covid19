@@ -644,7 +644,7 @@ server <- function(input, output, session) {
     p <- add_bars(p, y = sp$total_novos_casos, x = sp$datahora, name = "Novos casos diários")
     p <- add_trace(p, line = trace5$line, mode = trace5$mode, name = trace5$name, type = trace5$type, x = trace5$x, y = trace5$y, xaxis = trace5$xaxis, yaxis = trace5$yaxis)
     p <- add_trace(p, line = trace7$line, mode = trace7$mode, name = trace7$name, type = trace7$type, x = trace7$x, y = trace7$y, xaxis = trace7$xaxis, yaxis = trace7$yaxis)
-    p <- add_segments(p, yaxis = "y2", name = "100% de ocupação", x = as_date("2020-12-31"), xend = as_date("2021-04-15"), y = 100, yend = 100, line = list(dash = 6))
+    p <- add_segments(p, yaxis = "y2", name = "100% de ocupação", x = as_date("2020-12-31"), xend = as_date("2021-06-15"), y = 100, yend = 100, line = list(dash = 6))
     p <- layout(p, title = layout$title, xaxis = layout$xaxis, yaxis = layout$yaxis, yaxis2 = layout$yaxis2, margin = layout$margin, legend = list(orientation = "h"))
   })
 
