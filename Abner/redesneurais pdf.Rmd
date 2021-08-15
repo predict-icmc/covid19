@@ -1,0 +1,76 @@
+---
+title: "Analise modelo Redes Neurais"
+author: "Abner_10415165"
+date: "14/01/2021"
+output: html_document
+---
+```{r Bibliotecas, message=FALSE, warning=FALSE}
+library(forecast)
+library(fpp)
+library(tidyverse)
+library(scales)
+library(modelr)
+library(plotly)
+library(Metrics)
+library(feather)
+library(PegaCorona)
+```
+
+```{r Banco de dados, message=FALSE, warning=FALSE}
+
+df<-read_feather("full-covid.feather")
+
+```
+
+
+Separando Banco de dados para o estado de são paulo e  usarei da primeira observação até 26 de janeiro para o treino, e separando do dia 27 até 9 de janeiro como teste. Com isso tenho 2 semanas completas.
+
+```{r}
+redes <- df %>%
+  dplyr::filter( state=="SP" & place_type=="state") %>% 
+  dplyr::select(new_confirmed,date)
+
+treino<-redes[1:306,]
+test<-redes[307:320,]
+```
+
+
+Fitando o modelo de redes neurais e plotando a previsão
+```{r}
+fit <- nnetar(treino$new_confirmed,p=7)
+v<-data.frame(forecast(fit,14))
+p<-ggplot()+
+  geom_line(aes(x=seq(1:306),y=treino$new_confirmed),col="Black")+
+  geom_line(aes(x=seq(307,320),y=v$Point.Forecast),col="Red")+
+  geom_line(aes(x=seq(307,320),y=test$new_confirmed),col="Blue")+
+  scale_color_discrete(name = "Y series", labels = c("Y3","Y2", "Y1"))
+p
+```
+
+
+Calculando o RMSE da previsão 
+```{r}
+predict(fit,14)
+v<-data.frame(forecast(fit,14))
+(rmse(v$Point.Forecast,test$new_confirmed))
+```
+
+Fitando o modelo de redes neurais com todos os dados e vendo o ajuste
+```{r}
+fit2 <- nnetar(redes$new_confirmed,p=7)
+
+p<-ggplot()+
+  geom_line(aes(x=seq(1:325),y=redes$new_confirmed),col="Blue")+
+  geom_line(aes(x=seq(1,325),y=fit2$fitted),col="Red")
+p
+```
+
+Calculando o RMSE dos valores fitados e o valor real
+
+```{r}
+rmse(fit2$fitted[8:325],redes$new_confirmed[8:325])
+```
+
+
+
+

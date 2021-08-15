@@ -27,7 +27,7 @@ vacinados <- some.df %>%
 
 # computa a frequencia de vacinados em cada municipio e converte no formato usual do R
 vacinados_municip <- some.df %>%
-  group_by(estabelecimento_municipio_nome, vacina_dataaplicacao)  %>%
+  group_by(estabelecimento_municipio_nome, vacina_dataaplicacao, vacina_descricao_dose)  %>%
   summarise(n = n()) %>%
   collect()
 
@@ -45,7 +45,7 @@ vacinados_sp <- some.df %>%
   collect()
 
 
-colnames(vacinados_municip) <- c("municip","data","n")
+colnames(vacinados_municip) <- c("municip","data","dose","n")
 colnames(vacinados_por_grupo) <- c("data","grupo","dose","n")
 colnames(vacinados_sp) <- c("data","vacina","dose","n")
 
