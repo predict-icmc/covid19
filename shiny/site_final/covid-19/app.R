@@ -17,8 +17,7 @@
 
 # source("update-and-deploy.R")
 
-
-#'* carregando as dependencias no ambiente* 
+#'* carregando as dependencias no ambiente*
 #' para informacoes sobre as dependências necessárias, consulte o script abaixo
 source("load-data.R")
 
@@ -90,25 +89,25 @@ ui <- fluidPage(
           position = "left",
           h4(textOutput("last_update"), align = "left"),
           radioButtons("radio1", h3("Tipo de previsão"),
-            choices = list("Municipal" = 1, "Estadual" = 0, "Regional" = 2, "Federal" = 3),
+            choices = list("Estadual" = 0, "Regional" = 2, "Federal" = 3), #"Municipal" = 1
             selected = 0
           ),
           # Input: estado e cidade ----
           uiOutput(outputId = "state"),
-          uiOutput(outputId = "choosecity"), # ,  selected ="São Paulo"),
+         # uiOutput(outputId = "choosecity"), # ,  selected ="São Paulo"),
           radioButtons("radio2",h3("Variável") ,
-                       choices = list("Novos Casos" = 1, "Novos Óbitos" = 0), 
+                       choices = list("Novos Casos" = 1, "Novos Óbitos" = 0),
                        selected = 1
           ),
           numericInput("pred_rng", "Intervalo de predição (semanas)", min=1, max=10, value=3),
           radioButtons("radio3",h3("Modelo") ,
-                       choices = list("ARIMA" = 0, "NNAR" = 1), 
+                       choices = list("ARIMA" = 0, "NNAR" = 1),
                        selected = 0
           ),
           checkboxInput("usemm", "Modelar com a média móvel", value = FALSE),
           numericInput("minScore", "I.C. Mínimo (%)", min=60, max=99, value=80),
           numericInput("maxScore", "I.C. Máximo (%)", min=60, max=99.9, value=95),
-             
+
 
           # actionButton(
           #   inputId = "submit_state",
@@ -119,7 +118,7 @@ ui <- fluidPage(
           # h3(textOutput("deaths_count"), align = "right"),
           # h3(textOutput("letality_count"), align = "right"),
           # h3(textOutput("new_cases_count"), align = "right"),
-          # h3(textOutput("new_deaths_count"), align = "right"),
+          # h3(textOutput("newDeaths_count"), align = "right"),
           span(tags$i(h5("Dados retirados do portal brasil.io")), style = "color:#045a8d"),
           span(tags$i(h6("A notificação dos casos está sujeita a uma variação significativa devido a política de testagem e capacidade das Secretarias Estaduais e Municipais de Saúde.")), style = "color:#045a8d"),
         ),
@@ -128,18 +127,18 @@ ui <- fluidPage(
           # graficos do plotly por estado
           h2(textOutput('pred_hdr')),
           h4(textOutput("title")),
-          # radioButtons("predType", "" , vars_plot_mm, selected = "last_available_confirmed"),
+          # radioButtons("predType", "" , vars_plot_mm, selected = "totalCases"),
           plotlyOutput(outputId = "predict_cases"),
 
           # h2("Variacão da média móvel"),
-          # radioButtons("plotTypeMM", "", vars_plot_mm, selected = "new_confirmed"),
+          # radioButtons("plotTypeMM", "", vars_plot_mm, selected = "newCases"),
           # plotlyOutput(outputId = "mmPlot"),
 
           # h2("Comparacão 2019-2020 de óbitos notificados em cartório"),
           # h5("Pode haver atraso na consolidação dos dados"),
           # plotlyOutput(outputId = "cartMap"),
           # #h2("Acumulado no período"),
-          #radioButtons("plotType", " ", vars_plot, selected = "last_available_confirmed"),
+          #radioButtons("plotType", " ", vars_plot, selected = "totalCases"),
           #plotlyOutput(outputId = "distPlot")
 
 
@@ -157,7 +156,7 @@ ui <- fluidPage(
         sidebarPanel(
           position = "left",
           h4(textOutput("last_update_drs"), align = "left"),
-          
+
           # radioButtons("radio1", h3("Tipo de previsão"),
           #             choices = list("Estadual" = 0),#"Municipal" = 1, "Regional" = 2),
           #              selected = 0),
@@ -168,33 +167,38 @@ ui <- fluidPage(
           selectInput(
             inputId = "drs",
             label = "Escolha uma DRS:",
-            choices = drs_seade$nome_drs %>% levels()
+            choices =c("DRS 01 Grande São Paulo", "DRS 02 Araçatuba", "DRS 03 Araraquara",
+                       "DRS 04 Baixada Santista", "DRS 05 Barretos", "DRS 06 Bauru", "DRS 07 Campinas",
+                       "DRS 08 Franca", "DRS 09 Marília","DRS 10 Piracicaba", "DRS 11 Presidente Prudente",
+                       "DRS 12 Registro", "DRS 13 Ribeirão Preto", "DRS 14 São João da Boa Vista",
+                       "DRS 15 São José do Rio Preto", "DRS 16 Sorocaba", "DRS 17 Taubaté")
+
           ),
           # uiOutput(outputId = "choosecity_map",  selected ="São Paulo"),
           # radioButtons("radio2",h3("Variável") ,
-          #              choices = list("Novos Casos" = 1, "Novos Óbitos" = 0), 
+          #              choices = list("Novos Casos" = 1, "Novos Óbitos" = 0),
           #              selected = 1
           # ),
           # numericInput("pred_rng", "Intervalo de predição (semanas)", min=1, max=10, value=3),
           # radioButtons("radio3",h3("Modelo") ,
-          #              choices = list("ARIMA" = 0, "NNAR" = 1), 
+          #              choices = list("ARIMA" = 0, "NNAR" = 1),
           #              selected = 0
           # # ),
           # numericInput("minScore", "I.C. Mínimo", min=60, max=99, value=80),
           # numericInput("maxScore", "I.C. Máximo", min=60, max=99, value=95),
-          
-          span(tags$i(h5("Dados retirados do SEADE")), style = "color:#045a8d"),        
+
+          span(tags$i(h5("Dados retirados do SEADE")), style = "color:#045a8d"),
           span(tags$i(h6("A notificação dos casos está sujeita a uma variação significativa devido a política de testagem e capacidade das Secretarias Estaduais e Municipais de Saúde.")), style = "color:#045a8d") # ,
           # h3(textOutput("case_count"), align = "right"),
           # h3(textOutput("deaths_count"), align = "right"),
           # h3(textOutput("letality_count"), align = "right"),
           # h3(textOutput("new_cases_count"), align = "right"),
-          # h3(textOutput("new_deaths_count"), align = "right"),
+          # h3(textOutput("newDeaths_count"), align = "right"),
         ),
         mainPanel(
           h2("Previsão de casos para os próximos 21 dias"),
           h4("Ajuste ao modelo de Redes Dinâmicas"),
-          # radioButtons("predType", "", vars_plot_mm, selected = "last_available_confirmed"),
+          # radioButtons("predType", "", vars_plot_mm, selected = "totalCases"),
           plotlyOutput(outputId = "predict_cases_drs"),
 
           # h2("Acumulado no período")
@@ -203,39 +207,6 @@ ui <- fluidPage(
         )
       )
       # )
-    ),
-    # Explorador
-    tabPanel(
-      "Tabela",
-      fluidRow(
-        column(
-          3,
-          selectInput("states", "Estados", c("Todos os estados" = "", estados), multiple = TRUE)
-        ),
-        column(
-          3,
-          conditionalPanel(
-            "input.states",
-            selectInput("cities", "Cidades", c("Todas as cidades" = ""), multiple = TRUE)
-          )
-        ),
-        # column(3,
-        #        conditionalPanel("input.states",
-        #                         selectInput("zipcodes", "Zipcodes", c("All zipcodes"=""), multiple=TRUE)
-        #        )
-        # )
-        # ),
-        #  fluidRow(
-        # selectInput("color", "Variável:", vars, selected = "last_available_confirmed"),
-        #  column(1,
-        #           numericInput("minScore", "Mínimo", min=0, max=100, value=0)
-        #    ),
-        #    column(1,
-        #           numericInput("maxScore", "Máximo", min=0, max=100, value=100)
-        #    )
-      ),
-      hr(),
-      DT::dataTableOutput("ziptable")
     ),
     tabPanel(
       "Sobre",
@@ -266,18 +237,20 @@ ui <- fluidPage(
 
 # server side da aplicacao
 server <- function(input, output, session) {
+
+
   # observador que lansa as cidades a serem escolhidas
-  output$choosecity <- renderUI({
-    if (input$radio1 == 1) {
-      req(input$state)
-      cities <- dt %>%
-        filter(state == input$state & place_type == "city") %>%
-        arrange(city) %>% 
-        select(city) %>%
-        unique()
-      selectInput("chooseCity", "Escolha a Cidade", cities)
-    }
-  })
+  # output$choosecity <- renderUI({
+  #   if (input$radio1 == 1) {
+  #     req(input$state)
+  #     cities <- dt %>%
+  #       filter(state == input$state) %>%
+  #       arrange(city) %>%
+  #       select(city) %>%
+  #       unique()
+  #     selectInput("chooseCity", "Escolha a Cidade", cities)
+  #   }
+  # })
   output$state <- renderUI({
     if (input$radio1 %in% c(0,1)) {
       selectInput("state",label = "Escolha um Estado:",
@@ -289,7 +262,7 @@ server <- function(input, output, session) {
     }
     else if (input$radio1 == 3) return(NULL)
   })
-  
+
 
   ## Interactive Map ###########################################
 
@@ -308,7 +281,7 @@ server <- function(input, output, session) {
     colorBy <- input$color
 
     if (input$radio == 1) {
-      zipdata <- dados %>% filter(place_type == "city" && estimated_population_2019 > 100000)
+      zipdata <- dados_cidades
       # pegando as geometrias das cidades
       shp <- get_brmap("City")
 
@@ -317,23 +290,24 @@ server <- function(input, output, session) {
       shp_sf <- st_as_sf(shp) %>%
         st_transform(4326)
       # unindo os dados de COVID-19 com as geometrias das cidades.
-      shp_sf <- shp_sf %>% filter(City %in% dados$city_ibge_code)
+      shp_sf <- shp_sf %>% filter(City %in% dados_cidades$ibgeID)
       shp_sf$City <- shp_sf$City %>% as.integer()
-      shp_sf <- left_join(shp_sf, dados, by = c("City" = "city_ibge_code"))
+      shp_sf <- left_join(shp_sf, zipdata, by = c("City" = "ibgeID"))
     }
     else {
-      zipdata <- dados %>% filter(place_type == "state")
+      zipdata <- dados_estados %>% filter(date == max(dados_estados$date)-1)
       # pegando as geometrias dos estados
-      shp <- get_brmap("State")
+      shp <- geobr::read_state() #get_brmap("State")
 
-      shp$City <- as.character(shp$State)
+      #shp$City <- as.character(shp$State)
       # definindo que o dataframe contém dados geométricos
       shp_sf <- st_as_sf(shp) %>%
         st_transform(4326)
       # unindo os dados de COVID-19 com as geometrias dos estados
-      shp_sf <- shp_sf %>% filter(State %in% dados$city_ibge_code)
-      shp_sf$City <- shp_sf$City %>% as.integer()
-      shp_sf <- left_join(shp_sf, dados, by = c("State" = "city_ibge_code"))
+      #shp_sf <- shp_sf %>% filter(State %in% dados$ibgeID)
+      #shp_sf$City <- shp_sf$City %>% as.integer()
+      shp_sf <- left_join(shp_sf, zipdata, by = c("abbrev_state" = "state"))
+      shp_sf$nome <- shp_sf$name_state
     }
     # browser()
     colorData <- shp_sf[[colorBy]]
@@ -370,18 +344,18 @@ server <- function(input, output, session) {
         popup = ~ paste0(
           sep = " ",
           "<b>", nome, "<b><br>",
-          "Variacao da média móvel de casos: ", round(var_mm_confirmed, 2), "%<b><br>",
-          "Variacao da média móvel de óbitos: ", round(var_mm_deaths, 2), "%<b><br>",
-          "<b>Casos confirmados: </b>", last_available_confirmed, "<br>",
-          "<b>Casos por 100k habitantes: </b>", last_available_confirmed_per_100k_inhabitants, tags$br(),
-          "Novos casos: ", new_confirmed, tags$br(),
-          "Novos óbitos: ", new_deaths, tags$br(),
-          "Populacão: ", estimated_population_2019, tags$br(),
-          "Total de Casos Confirmados: ", last_available_confirmed, tags$br(),
-          "Total de óbitos: ", last_available_deaths, tags$br(),
-          "Taxa de letalidade: ", last_available_death_rate
+          #"Variacao da média móvel de casos: ", round(var_mm_confirmed, 2), "%<b><br>",
+          #"Variacao da média móvel de óbitos: ", round(var_mm_deaths, 2), "%<b><br>",
+          "<b>Casos confirmados: </b>", totalCases, "<br>",
+          "<b>Casos por 100k habitantes: </b>", totalCases_per_100k_inhabitants, tags$br(),
+          "Novos casos: ", newCases, tags$br(),
+          "Novos óbitos: ", newDeaths, tags$br(),
+          #"Populacão: ", estimated_population_2019, tags$br(),
+          "Total de Casos Confirmados: ", totalCases, tags$br()
+          #"Total de óbitos: ", deaths, tags$br()
+          #"Taxa de letalidade: ", last_available_death_rate
         ),
-        label = ~nome, layerId = ~City
+        label = ~nome, layerId = ~nome
       ) %>%
       addLegend("bottomright",
         title = names(colorBy),
@@ -392,77 +366,33 @@ server <- function(input, output, session) {
   })
 
   # # funcao que mostra a cidade clicada
-  # showCityPopup <- function(city_ibge_code, lat, lng) {
-  #     selectedZip <- dados[dados$city_ibge_code == city_ibge_code,]
+  # showCityPopup <- function(ibgeID, lat, lng) {
+  #     selectedZip <- dados[dados$ibgeID == ibgeID,]
   #     content <- as.character(tagList(
   #         tags$h4(HTML(sprintf("%s %s",
   #                              selectedZip$city, selectedZip$state
   #         ))),
-  #         sprintf("Novos casos: %s", selectedZip$new_confirmed), tags$br(),
-  #         sprintf("Novos óbitos: %s", selectedZip$new_deaths),tags$br(),
+  #         sprintf("Novos casos: %s", selectedZip$newCases), tags$br(),
+  #         sprintf("Novos óbitos: %s", selectedZip$newDeaths),tags$br(),
   #         sprintf("Populacão: %s", as.integer(selectedZip$estimated_population_2019)),tags$br(),
-  #         sprintf("Total de Casos Confirmados: %s", as.integer(selectedZip$last_available_confirmed)), tags$br(),
-  #         sprintf("Total de óbitos: %s", as.integer(selectedZip$last_available_deaths)), tags$br(),
+  #         sprintf("Total de Casos Confirmados: %s", as.integer(selectedZip$totalCases)), tags$br(),
+  #         sprintf("Total de óbitos: %s", as.integer(selectedZip$deaths)), tags$br(),
   #         sprintf("Taxa de letalidade: %s%%", selectedZip$last_available_death_rate)
   #     ))
-  #     leafletProxy("map") %>% addPopups(lng, lat, content, layerId = city_ibge_code)
+  #     leafletProxy("map") %>% addPopups(lng, lat, content, layerId = ibgeID)
   #
   # }
 
-  # observador que mostra a cidade clicada a partir da tabela
-  observe({
-    leafletProxy("map") %>% clearPopups()
-    event <- input$map_marker_click
-    if (is.null(event)) {
-      return()
-    }
-
-    isolate({
-      showCityPopup(event$id, event$lat, event$lng)
-      # aqui entraria o observador que controla a cidade a ser exibida na previsao
-    })
-  })
-
   #'@Gráficos
-  # Mortes em cartório
-  output$cartMap <- renderPlotly({
-    req(input$state)
 
-    covdeaths <- dt %>%
-      filter(state == input$state & place_type == "state") %>%
-      select(date, new_deaths)
-    ex <- cart %>%
-      filter(state == input$state) %>%
-      select(new_deaths_total_2020, new_deaths_total_2019, date)
-    ex$date <- ex$date %>% as.Date()
-
-    ex <- left_join(ex, covdeaths, by = c("date" = "date"))
-    # trocando os NA's por zero
-    ex[is.na(ex)] <- 0
-
-    ex <- tibble("Variação 2019-2020" = ex$new_deaths_total_2020 - ex$new_deaths_total_2019, date = ex$date, "Óbitos de Covid-19" = ex$new_deaths)
-    # ex <- ex %>% mutate(new_deaths = new_deaths_total_2019 + new_deaths)
-    plt <- ex %>% reshape2::melt(id.vars = "date")
-    p <- plt %>%
-      ggplot(aes(x = date, y = value, fill = variable, text = variable)) +
-      geom_area() +
-      scale_fill_viridis(discrete = TRUE) +
-      ggtitle(paste0("Mortes em excesso no estado de ", input$state)) +
-      geom_vline(aes(xintercept = as.Date("2020-03-13"))) +
-      geom_vline(aes(xintercept = as.Date("2020-12-21")))
-    # theme(legend.position="none")
-
-    ggplotly(p)
-  })
-  
   #' @Previsoes no plot_ly
-  
+
   # utilizando cashing para reaproveitar as contas no server
   forecast_c <- memoise(forecast)
-  
+
   # objeto reativo que armazena o modelo utilizado
   dfit <- reactiveValues(data = NULL, xreg = NULL, title = NULL)
-  
+
   # recebe um modelo e calcula a previsao com a confiança estipulada
   calcula_pred <- reactive({
     lwr <- input$maxScore
@@ -470,24 +400,24 @@ server <- function(input, output, session) {
     rng <- input$pred_rng
     fit <- dfit$data
     #xreg <- dfit$xreg
-                    
+
     f <- forecast_c(fit, 7 * rng, PI = T, level = c(lwr/100, upr/100))#, xreg = xreg$mean)
     tmp <- autoplot(f)
     dfit$title <- tmp$labels$title
     f
   })
-  
+
   output$title <- renderText({
-    print(dfit$title)
+    dfit$title
   })
-  
+
   output$pred_hdr <- renderText({
     if (input$radio2 == 1) lbl <- "casos"
     else lbl <- "óbitos"
     paste0("Previsão de novos ",lbl," para os próximos ",7*input$pred_rng, " dias")
   })
-  
-  
+
+
 
   # previsao por DRS
   output$predict_cases_drs <- renderPlotly({
@@ -507,11 +437,11 @@ server <- function(input, output, session) {
 
     show_modal_spinner(text = "Calculando previsão...")
 
-    
+
     req(input$maxScore)
     req(input$minScore)
     req(input$pred_rng)
-    
+
     pred <- calcula_pred()
     # constante de previsao = % ocupaçao * new_cases / pred(new_cases)
 
@@ -651,19 +581,17 @@ server <- function(input, output, session) {
   # previsao por estado e municipio
   output$predict_cases <- renderPlotly({
     show_modal_spinner(text = "Calculando previsão...") # loading bar
-    
+
     # cidade estado regiao ou br
     if (input$radio1 == 1) {
       req(input$chooseCity)
-      selectedCity <- dt %>% filter(state == input$state &
-        city == input$chooseCity &
-        place_type == "city")
+      #selectedCity <- dt %>% filter(state == input$state &
+      #  city == input$chooseCity)
       title_g <- paste0(input$chooseCity, " - ", input$state)
     }
     else if (input$radio1 == 0) { #estado
       req(input$state)
-      selectedCity <- dt %>% filter(state == input$state &
-        place_type == "state")
+      selectedCity <- dados_estados %>% filter(state == input$state)
       title_g <- paste0("Estado de ", input$state)
     }
     else if (input$radio1 == 2) { #regiao
@@ -672,37 +600,37 @@ server <- function(input, output, session) {
       title_g <- paste0("Região ",input$region)
     }
     else if (input$radio1 == 3) { #brasil todo
-      selectedCity <- dados_regioes %>% filter(regiao == "BRASIL")
+      selectedCity <- dados_br
       title_g <- paste0("Brasil")
     }
-    
-      
+
+
       if (input$radio2 == 1){ #casos
       # media movel
         mm <- selectedCity$mm7d_confirmed
-        lin <- selectedCity$new_confirmed
-  
-        if (input$usemm == 1) 
+        lin <- selectedCity$newCases
+
+        if (input$usemm == 1)
           mdlvar <- selectedCity$mm7d_confirmed
-  
-        else mdlvar <- selectedCity$new_confirmed
-        
+
+        else mdlvar <- selectedCity$newCases
+
         lbl <- "casos"
       }
       else{ # ou obitos
         mm <- selectedCity$mm7d_deaths
-        lin <- selectedCity$new_deaths
-        
-        if (input$usemm == 1) 
+        lin <- selectedCity$newDeaths
+
+        if (input$usemm == 1)
           mdlvar <- selectedCity$mm7d_deaths
-        else  mdlvar <- selectedCity$new_deaths
-        
+        else  mdlvar <- selectedCity$newDeaths
+
         lbl <- "óbitos"
       }
       # tipo de modelagem a ser adotado
       if(input$radio3 == 1){ # redes neurais
         rng <- input$pred_rng
-        ts_mdl <- xts::xts(x = mdlvar, order.by = selectedCity$date, frequency = 7) 
+        ts_mdl <- xts::xts(x = mdlvar, order.by = selectedCity$date, frequency = 7)
         #xreg = auto.arima(ts_mdl, approximation=FALSE)
         dfit$data <- nnetar(ts_mdl, p = 7)#, xreg = xreg$fitted)
         #dfit$xreg <- forecast(xreg, 7 * rng)
@@ -710,18 +638,18 @@ server <- function(input, output, session) {
       else{ # arima
         rng <- input$pred_rng
         ts_mdl <- xts::xts(x = mdlvar, order.by = selectedCity$date, frequency = 7)
-        #xreg <- nnetar(ts_mdl, p = 7) 
+        #xreg <- nnetar(ts_mdl, p = 7)
         dfit$data <- auto.arima(ts_mdl, approximation=FALSE)#, xreg = xreg$fitted)
         #dfit$xreg <- forecast(xreg, 7 * rng)
       }
-      
-      
+
+
       # intervalos de confiança para a predição
       pred <- calcula_pred()
-      
+
       remove_modal_spinner() # remove a barra de carregamento
-      # browser()
-      
+      #browser()
+
       trace1 <- list(
         line = list(
           color = "rgba(0,0,0,1)",
@@ -804,8 +732,8 @@ server <- function(input, output, session) {
       p <- add_trace(p, line = trace4$line, mode = trace4$mode, name = trace4$name, type = trace4$type, x = trace4$x, y = trace4$y, xaxis = trace4$xaxis, yaxis = trace4$yaxis)
       p %>% add_bars(x = ~date, y = ~ mdlvar)
       p <- layout(p, title = layout$title, xaxis = layout$xaxis, yaxis = layout$yaxis, margin = layout$margin, legend = list(orientation = "h"))
-      p %>% add_bars(y = lin, x = selectedCity$date, name = paste0("Novos ",lbl," diários"))    
-        
+      p %>% add_bars(y = lin, x = selectedCity$date, name = paste0("Novos ",lbl," diários"))
+
 
   })
 
@@ -818,12 +746,10 @@ server <- function(input, output, session) {
 
     # seleciona cidade ou estado
     if (input$radio1 == 1) {
-      selectedCity <- dt %>% filter(state == input$state &
-        city == input$chooseCity &
-        place_type == "city")
+      #selectedCity <- dt %>% filter(state == input$state &
+       # city == input$chooseCity)
     } else if (input$radio1 == 0) {
-      selectedCity <- dt %>% filter(state == input$state &
-        place_type == "state")
+      selectedCity <- dados_estados %>% filter(state == input$state)
     }
 
     # input
@@ -831,7 +757,7 @@ server <- function(input, output, session) {
       select(input$plotType) %>%
       pull()
 
-    if (input$plotType %in% c("new_confirmed", "new_deaths")) {
+    if (input$plotType %in% c("newCases", "newDeaths")) {
       p <- selectedCity %>%
         plot_ly() %>%
         add_lines(x = ~date, y = ~ frollmean(selectedvar, 7)) %>%
@@ -846,157 +772,9 @@ server <- function(input, output, session) {
         config(displayModeBar = F) %>%
         hide_legend()
     }
-    
-    # label da ultima att
-    output$last_update <- renderText({
-      req(input$state)
-      
-      data <- dt %>% filter(state == input$state &
-                              place_type == "state" & is_last == "True")
-      paste0("Atualizado em ", as.Date(data$date))
-    })
-    # label da ultima att DRS
-    output$last_update_drs <- renderText({
-      req(input$drs)
-      
-      data <- drs_seade %>%
-        filter(nome_drs == input$drs) %>%
-        arrange(datahora) %>%
-        last()
-      paste0("Atualizado em ", as.Date(data$datahora))
-    })
-    
-    
-    
-    # label do numero de casos
-    output$case_count <- renderText({
-      if (input$radio1 == 1) {
-        req(input$chooseCity)
-        total_casos <- dt %>% filter(state == input$state &
-                                       city == input$chooseCity &
-                                       place_type == "city" & is_last == "True")
-      }
-      else if (input$radio1 == 0) {
-        req(input$state)
-        total_casos <- dt %>% filter(state == input$state &
-                                       place_type == "state" & is_last == "True")
-      }
-      paste0(prettyNum(total_casos$last_available_confirmed, big.mark = ".", decimal.mark = ","), " casos\n")
-    })
-    
-    # labels de texto dos gráficos
-    # label do numero de mortes
-    output$deaths_count <- renderText({
-      if (input$radio1 == 1) {
-        req(input$chooseCity)
-        total_casos <- dt %>% filter(state == input$state &
-                                       city == input$chooseCity &
-                                       place_type == "city" & is_last == "True")
-      }
-      else if (input$radio1 == 0) {
-        req(input$state)
-        total_casos <- dt %>% filter(state == input$state &
-                                       place_type == "state" & is_last == "True")
-      }
-      paste0(prettyNum(total_casos$last_available_deaths, big.mark = ".", decimal.mark = ","), " óbitos\n")
-    })
-    # label do numero de novos casos
-    output$new_cases_count <- renderText({
-      if (input$radio1 == 1) {
-        req(input$chooseCity)
-        total_casos <- dt %>% filter(state == input$state &
-                                       city == input$chooseCity &
-                                       place_type == "city" & is_last == "True")
-      }
-      else if (input$radio1 == 0) {
-        req(input$state)
-        total_casos <- dt %>% filter(state == input$state &
-                                       place_type == "state" & is_last == "True")
-      }
-      paste0(prettyNum(total_casos$new_confirmed, big.mark = ".", decimal.mark = ","), " novos casos\n")
-    })
-    # label do numero de novas mortes
-    output$new_deaths_count <- renderText({
-      if (input$radio1 == 1) {
-        req(input$chooseCity)
-        total_casos <- dt %>% filter(state == input$state &
-                                       city == input$chooseCity &
-                                       place_type == "city" & is_last == "True")
-      }
-      else if (input$radio1 == 0) {
-        req(input$state)
-        total_casos <- dt %>% filter(state == input$state &
-                                       place_type == "state" & is_last == "True")
-      }
-      paste0(prettyNum(total_casos$new_deaths, big.mark = ".", decimal.mark = ","), " novos óbitos\n")
-    })
-    # label da taxa de letalidade
-    output$letality_count <- renderText({
-      if (input$radio1 == 1) {
-        req(input$chooseCity)
-        total_casos <- dt %>% filter(state == input$state &
-                                       city == input$chooseCity &
-                                       place_type == "city" & is_last == "True")
-      }
-      else if (input$radio1 == 0) {
-        req(input$state)
-        total_casos <- dt %>% filter(state == input$state &
-                                       place_type == "state" & is_last == "True")
-      }
-      paste0(scales::percent(total_casos$last_available_death_rate), " letalidade\n")
-    })
-    
-  })
-  
-  #' @Tabela (data explorer)
-  observe({
-    cities <- if (is.null(input$states)) {
-      character(0)
-    } else {
-      filter(cleantable, state %in% input$states) %>%
-        `$`("city") %>%
-        unique() %>%
-        sort()
-    }
-    stillSelected <- isolate(input$cities[input$cities %in% cities])
-    updateSelectizeInput(session, "cities",
-      choices = cities,
-      selected = stillSelected, server = TRUE
-    )
+
   })
 
-    observe({
-    if (is.null(input$goto)) {
-      return()
-    }
-    isolate({
-      map <- leafletProxy("map")
-      map %>% clearPopups()
-      dist <- 0.5
-      zip <- input$goto$city
-      lat <- input$goto$lat 
-      lng <- input$goto$lng
-      showCityPopup(zip, lat, lng)
-      map %>% fitBounds(lng - dist, lat - dist, lng + dist, lat + dist)
-    })
-  })
-
-  output$ziptable <- DT::renderDataTable({
-    df <- cleantable %>%
-      filter(
-        # Score >= input$minScore,
-        # Score <= input$maxScore,
-        is.null(input$states) | state %in% input$states,
-        is.null(input$cities) | city %in% input$cities # ,
-        # is.null(input$zipcodes) | Zipcode %in% input$zipcodes
-      ) %>%
-      mutate("Ir ao mapa" = paste('<a class="go-map" href="" data-lat="', latitude, '" data-long="', longitude, '" data-city="', city_ibge_code, '"><i class="fa fa-crosshairs"></i></a>', sep = ""))
-    action <- DT::dataTableAjax(session, df, outputId = "ziptable")
-
-
-    colnames(df) <- c("Estado", "Cidade", "Populacão Estimada 2019", "Total de Casos", "Total de Mortes", "Taxa de Letalidade", "Latitude", "Longitude", "Código IBGE", "Ir ao Mapa")
-    DT::datatable(df, options = list(ajax = list(url = action)), escape = FALSE)
-  })
 }
 # browser()
 shinyApp(ui = ui, server = server)

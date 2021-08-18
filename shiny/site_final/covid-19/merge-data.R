@@ -18,7 +18,7 @@ library(data.table)
 downCorona <- function(file_url) {
   con <- gzcon(url(file_url))
   txt <- readLines(con)
-  return(read.csv(textConnection(txt)))
+  return(fread(textConnection(txt)))
 }
 
 # funcao que pega o arquivo de casos do brasil.io, faz um pequeno tratamento e envia para o dropbox os arquivos "latlong-covid.feather" e "full-covid.feather"
@@ -62,7 +62,7 @@ pegaCorona <- function(baixar = TRUE) {
   # separando por regioes e calculando os casos do brasil
 
 
-  casos_regiao <- dados %>% filter(place_type == "state") %>% 
+  casos_regiao <- dados %>% filter(place_type == "state") %>%
     mutate(
       regiao =
         ifelse(state %in% c("AM", "TO", "PA", "RO", "RR", "AP", "AC"), "NORTE",
@@ -137,8 +137,8 @@ pegaCorona <- function(baixar = TRUE) {
 
 baixar_seade <- function() {
   # Lendo a base de dados do SEADE com os casos em SP
-  casos <- read.csv("https://raw.githubusercontent.com/seade-R/dados-covid-sp/master/data/dados_covid_sp.csv", sep = ";")
-  leitos <- read.csv("https://raw.githubusercontent.com/seade-R/dados-covid-sp/master/data/plano_sp_leitos_internacoes_serie_nova_variacao_semanal.csv", sep = ";")
+  casos <- fread("https://raw.githubusercontent.com/seade-R/dados-covid-sp/master/data/dados_covid_sp.csv", sep = ";")
+  leitos <- fread("https://raw.githubusercontent.com/seade-R/dados-covid-sp/master/data/plano_sp_leitos_internacoes_serie_nova_variacao_semanal.csv", sep = ";")
 
   # incluindo os codigos das DRS na base de leitos
   leitos <- leitos %>% mutate(cod_drs = extract_numeric(nome_drs))
@@ -166,6 +166,6 @@ baixar_seade <- function() {
   # trocando as virgulas por pontos
   casos_drs$ocupacao_leitos <- as.numeric(gsub(",", ".", gsub("\\.", "", casos_drs$ocupacao_leitos)))
 
-
-  write_feather(casos_drs, sprintf("seade-covid.feather"))
+  casos_drs
+  
 }
